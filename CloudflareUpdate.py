@@ -1,3 +1,5 @@
+"""Utility script for updating Cloudflare DNS records."""
+
 import os
 import sys
 import requests
@@ -5,6 +7,14 @@ from dotenv import load_dotenv
 from typing import Optional
 import getpass
 from dotenv import find_dotenv
+import re
+
+__version__ = "1.0.0"
+
+try:
+    from pyfiglet import figlet_format
+except ImportError:  # pragma: no cover - optional dependency
+    figlet_format = None
 
 # Color output for Windows
 try:
@@ -12,9 +22,11 @@ try:
     init()
     GREEN = Fore.GREEN
     RED = Fore.RED
+    CYAN = Fore.CYAN
+    YELLOW = Fore.YELLOW
     RESET = Style.RESET_ALL
 except ImportError:
-    GREEN = RED = RESET = ''
+    GREEN = RED = CYAN = YELLOW = RESET = ''
 
 load_dotenv()
 
@@ -33,20 +45,58 @@ DRY_RUN = None
 DEBUG = None
 CENSOR = None
 HEADERS = None
+HTML_REPORT = None
+CHANGES = []
 
 def log_info(msg: str):
-    print(f"{GREEN}ℹ️  {msg}{RESET}")
+    print(f"{CYAN}ℹ️  {msg}{RESET}")
+    """Print an informational message in green."""
 
 def log_success(msg: str):
+    """Print a success message."""
     print(f"{GREEN}✅ {msg}{RESET}")
 
 def log_error(msg: str):
+    """Print an error message in red."""
     print(f"{RED}❌ {msg}{RESET}")
 
 def log_dryrun(msg: str):
-    print(f"{GREEN}🟡 [DRY RUN] {msg}{RESET}")
+    print(f"{YELLOW}🟡 [DRY RUN] {msg}{RESET}")
+    """Print a message when running with --dry-run."""
+
+def check_for_update():
+    """Check GitHub for a newer version of this script."""
+    url = (
+        "https://raw.githubusercontent.com/SkyLostTR/Cloudflare-Update-IP/main/"
+        "CloudflareUpdate.py"
+    )
+    try:
+        resp = requests.get(url, timeout=10)
+        resp.raise_for_status()
+        match = re.search(r"__version__\s*=\s*['\"]([^'\"]+)['\"]", resp.text)
+        if match and match.group(1) != __version__:
+            remote_version = match.group(1)
+            print(
+                f"A new version ({remote_version}) is available. "
+                f"You have {__version__}."
+            )
+            choice = input("Update now? (y/N): ").strip().lower()
+            if choice in ("y", "yes"):
+                try:
+                    with open(__file__, "w", encoding="utf-8") as f:
+                        f.write(resp.text)
+                    print("Updated successfully. Please run the script again.")
+                    sys.exit(0)
+                except Exception as e:
+                    log_error(f"Automatic update failed: {e}")
+                    print("Please update manually from GitHub.")
+        elif not match:
+            log_error("Failed to determine remote version for update check")
+    except Exception as e:
+        log_error(f"Update check failed: {e}")
 
 def init_env():
+    """Load environment variables from .env or ask interactively."""
     global CLOUDFLARE_API_TOKEN, NEW_IP, OLD_IP, TARGET_DOMAIN, DRY_RUN, DEBUG, CENSOR, INTERACTIVE_ENV, HEADERS
     # Try to load .env, if not found or missing required, prompt interactively
     try:
@@ -102,11 +152,22 @@ def init_env():
     }
 
 def debug(msg: str):
+    """Write debug messages to a file when DEBUG is enabled."""
     if DEBUG:
         with open('debug_output.txt', 'a', encoding='utf-8') as f:
             f.write(msg + '\n')
 
+def print_banner():
+    text = "Cloudflare Batch Tool"
+    if figlet_format:
+        banner = figlet_format(text)
+    else:
+        banner = text
+    print(f"{CYAN}{banner}{RESET}")
+    print(f"{YELLOW}(credit: @SkyLostTR){RESET}")
+
 def censor_value(val, kind=None):
+    """Mask sensitive values before printing."""
     if not CENSOR or not val:
         return val
     if kind == 'id':
@@ -127,6 +188,7 @@ def censor_value(val, kind=None):
     return '***'
 
 def censor_env(env_dict):
+    """Return a copy of env dict with sensitive fields masked."""
     CENSOR_KEYS = [
         'CLOUDFLARE_API_TOKEN', 'CLOUDFLARE_AUTH_KEY', 'CLOUDFLARE_AUTH_EMAIL',
         'NEW_IP', 'OLD_IP', 'TARGET_DOMAIN'
@@ -149,6 +211,7 @@ def censor_env(env_dict):
     return censored
 
 def print_censored_env():
+    """Display environment variables with optional censoring."""
     if not CENSOR:
         print("\nENVIRONMENT (uncensored):")
         env_vars = [
@@ -169,6 +232,7 @@ def print_censored_env():
         print(f"  {k} = {v}")
 
 def get_zones():
+    """Fetch all accessible zones or filter by TARGET_DOMAIN."""
     url = 'https://api.cloudflare.com/client/v4/zones/?per_page=500'
     resp = requests.get(url, headers=HEADERS)
     resp.raise_for_status()
@@ -178,6 +242,7 @@ def get_zones():
     return zones
 
 def get_records(zone_id, record_type=None):
+    """Return DNS records for the given zone."""
     url = f'https://api.cloudflare.com/client/v4/zones/{zone_id}/dns_records?per_page=500'
     if record_type:
         url += f'&type={record_type}'
@@ -186,6 +251,7 @@ def get_records(zone_id, record_type=None):
     return resp.json()['result']
 
 def update_generic_record(zone_id, record, new_content):
+    """Update a DNS record with new content."""
     url = f'https://api.cloudflare.com/client/v4/zones/{zone_id}/dns_records/{record["id"]}'
     data = {
         'type': record['type'],
@@ -201,6 +267,7 @@ def update_generic_record(zone_id, record, new_content):
     return resp.ok, resp.text
 
 def backup_records(zones, backup_file='cf_backup.json'):
+    """Save all DNS records for each zone to a JSON file."""
     import json
     backup_data = {}
     for zone in zones:
@@ -219,6 +286,7 @@ def backup_records(zones, backup_file='cf_backup.json'):
 
 
 def restore_records(backup_file='cf_backup.json'):
+    """Restore DNS records from a JSON backup file."""
     import json
     if not os.path.exists(backup_file):
         log_error(f"Backup file not found: {backup_file}")
@@ -244,7 +312,39 @@ def restore_records(backup_file='cf_backup.json'):
             else:
                 log_error(f"Failed to restore record {rec['id']} ({rec['name']}) [{rec['type']}]")
 
+def generate_html_report(changes, output_file='report.html'):
+    html_header = """<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='utf-8'>
+    <title>Cloudflare DNS Update Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin:20px; }
+        table { border-collapse: collapse; width:100%; }
+        th, td { border:1px solid #ddd; padding:8px; }
+        th { background-color:#4CAF50; color:white; }
+        tr:nth-child(even) { background-color:#f2f2f2; }
+    </style>
+</head>
+<body>
+<h2>Cloudflare DNS Update Report</h2>
+<table>
+<tr><th>Domain</th><th>Record ID</th><th>Type</th><th>Old Content</th><th>New Content</th><th>Status</th></tr>
+"""
+    rows = []
+    for c in changes:
+        rows.append(
+            f"<tr><td>{c['domain']}</td><td>{c['record_id']}</td><td>{c['type']}</td><td>{c.get('old','')}</td><td>{c.get('new','')}</td><td>{c['status']}</td></tr>"
+        )
+    html_footer = """</table>
+</body>
+</html>"""
+    with open(output_file, 'w', encoding='utf-8') as f:
+        f.write(html_header + "\n".join(rows) + html_footer)
+    log_success(f"HTML report generated: {output_file}")
+
 def prompt_for_env():
+    """Prompt the user for all required environment variables."""
     print("\nNo .env file found or required variables missing. Please enter the required parameters:")
     def ask(prompt, default=None, secret=False):
         if default:
@@ -275,16 +375,22 @@ def prompt_for_env():
     }
 
 def main():
+    """Entry point for running the update or backup logic."""
     import argparse
+    check_for_update()
     init_env()
+    print_banner()
     print("\n" + "="*50)
-    print(f"🚀 Starting Cloudflare DNS update script for {TARGET_DOMAIN or 'all zones'}!")
+    print(f"{GREEN}🚀 Starting Cloudflare DNS update script for {TARGET_DOMAIN or 'all zones'}!{RESET}")
     print("="*50 + "\n")
     print_censored_env()
     parser = argparse.ArgumentParser(description='Cloudflare DNS update script with backup/restore')
     parser.add_argument('--backup', action='store_true', help='Backup all DNS records to cf_backup.json')
     parser.add_argument('--restore', action='store_true', help='Restore DNS records from cf_backup.json')
+    parser.add_argument('--html-report', metavar='FILE', help='Write HTML report of changes')
     args = parser.parse_args()
+    global HTML_REPORT
+    HTML_REPORT = args.html_report
 
     zones = get_zones()
     if args.backup:
@@ -297,15 +403,19 @@ def main():
     updated = 0
     skipped = 0
     # Support more DNS record types
+    # Cloudflare supports a wide range of DNS record types.
+    # This list determines which types we will iterate over when updating.
     record_types = [
         'A', 'AAAA', 'CNAME', 'TXT', 'SRV', 'MX', 'NS', 'PTR', 'CAA', 'CERT', 'DNSKEY', 'DS', 'LOC', 'NAPTR', 'SMIMEA', 'SSHFP', 'SVCB', 'TLSA', 'URI'
     ]
     OLD_IP = os.getenv('OLD_IP')
+    # Iterate over every zone returned by the API
     for zone in zones:
         zone_id = zone['id']
         if DEBUG:
             debug(f"Found zone ID: {zone_id}")
         all_records = []
+        # Fetch records of each supported type
         for rtype in record_types:
             try:
                 recs = get_records(zone_id, rtype)
@@ -314,6 +424,7 @@ def main():
                 log_error(f"Failed to fetch {rtype} records for zone {zone_id}: {e}")
                 if DEBUG:
                     debug(f"[ERROR] Failed to fetch {rtype} records for zone {zone_id}: {e}")
+        # Now iterate through every retrieved record
         for rec in all_records:
             total += 1
             if DEBUG:
@@ -323,10 +434,20 @@ def main():
                 log_info(f"[SKIP] Empty field in record {rec}")
                 if DEBUG:
                     debug(f"[DEBUG] Skipped: Empty field in record {rec}")
+                CHANGES.append({
+                    'domain': rec.get('name'),
+                    'record_id': rec.get('id'),
+                    'type': rec.get('type'),
+                    'old': rec.get('content'),
+                    'new': rec.get('content'),
+                    'status': 'skipped'
+                })
                 continue
             should_update = False
             new_content = rec['content']
+            # Determine if this record needs to be changed
             if rec['type'] == 'A':
+                # For A records we simply compare with the desired NEW_IP
                 if rec['content'] != NEW_IP:
                     should_update = True
                     new_content = NEW_IP
@@ -340,14 +461,31 @@ def main():
                 print(f"⏭️  Skipped record {censored_id} ({censored_name}) [{rec['type']}] (no match or unchanged)")
                 if DEBUG:
                     debug(f"[SKIP] Record {censored_id} ({censored_name}) [{rec['type']}] not matching OLD_IP or already updated")
+                CHANGES.append({
+                    'domain': rec['name'],
+                    'record_id': rec['id'],
+                    'type': rec['type'],
+                    'old': rec['content'],
+                    'new': rec['content'],
+                    'status': 'skipped'
+                })
                 continue
             censored_id = censor_value(rec['id'], 'id')
             censored_name = censor_value(rec['name'], 'name')
             print(f"{'-'*40}\n🌐 Domain: {censored_name}\n🆔 Record ID: {censored_id}\n📦 Zone ID: {zone_id}\n📄 Type: {rec['type']}\n➡️  Current: {rec['content']}\n➡️  New: {new_content}")
+            # Perform the update unless running in dry-run mode
             if DRY_RUN:
                 log_dryrun(f"Would update record {rec['id']} ({rec['name']}) [{rec['type']}] in zone {zone_id}: current={rec['content']}, new={new_content}")
                 if DEBUG:
                     debug(f"[DRY RUN] Would update record {rec['id']} ({rec['name']}) [{rec['type']}] in zone {zone_id}: current={rec['content']}, new={new_content}")
+                CHANGES.append({
+                    'domain': rec['name'],
+                    'record_id': rec['id'],
+                    'type': rec['type'],
+                    'old': rec['content'],
+                    'new': new_content,
+                    'status': 'dry-run'
+                })
             else:
                 ok, resp = update_generic_record(zone_id, rec, new_content)
                 if ok:
@@ -355,13 +493,32 @@ def main():
                     log_success(f"Updated record {rec['id']} ({rec['name']}) [{rec['type']}]" )
                     if DEBUG:
                         debug(f"[SUCCESS] Updated record {rec['id']} [{rec['type']}]" )
+                    CHANGES.append({
+                        'domain': rec['name'],
+                        'record_id': rec['id'],
+                        'type': rec['type'],
+                        'old': rec['content'],
+                        'new': new_content,
+                        'status': 'updated'
+                    })
                 else:
                     log_error(f"Failed to update record {rec['id']} ({rec['name']}) [{rec['type']}]" )
                     if DEBUG:
                         debug(f"[ERROR] Failed to update record {rec['id']} [{rec['type']}]: {resp}")
+                    CHANGES.append({
+                        'domain': rec['name'],
+                        'record_id': rec['id'],
+                        'type': rec['type'],
+                        'old': rec['content'],
+                        'new': new_content,
+                        'status': 'failed'
+                    })
     print("\n" + "="*50)
-    print(f"🎉 DNS update script completed.\nTotal records: {total} | Updated: {updated} | Skipped: {skipped}")
+    print(f"{GREEN}🎉 DNS update script completed.{RESET}")
+    print(f"{CYAN}Total records: {total} | Updated: {updated} | Skipped: {skipped}{RESET}")
     print("="*50)
+    if HTML_REPORT:
+        generate_html_report(CHANGES, HTML_REPORT)
     input("\nPress Enter to exit...")
 
 if __name__ == '__main__':
