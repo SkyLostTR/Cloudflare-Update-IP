@@ -1,5 +1,23 @@
 # Usage
 
-When executed, `CloudflareUpdate.bat` iterates through all zones in your Cloudflare account and updates every `A` record to use the `NEW_IP` specified in the `.env` file. Progress messages are displayed in color using PowerShell.
+Running the batch file performs the following steps:
 
-Use this tool with caution, as it will modify every `A` record in all zones accessible with your API credentials.
+1. Reads configuration from `.env`.
+2. Retrieves a list of zones from the Cloudflare API.
+3. Iterates over each `A` record and updates its content to `NEW_IP`.
+
+Execute the script from a command prompt:
+
+```sh
+CloudflareUpdate.bat
+```
+
+You will see progress messages similar to:
+
+```
+Found zone ID: <zone>
+Updating record <record_id> in zone <zone> to IP <NEW_IP>...
+[SUCCESS] Updated record <record_id>
+```
+
+Failures are highlighted in red. After completion, the script prints a summary.
