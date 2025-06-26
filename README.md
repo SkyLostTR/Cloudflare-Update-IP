@@ -1,104 +1,115 @@
+<p align="center" dir="auto">
+    <a href="https://github.com/SkyLostTR/Cloudflare-Update-IP/actions">
+      <img alt="Tests Passing" src="https://github.com/SkyLostTR/Cloudflare-Update-IP/workflows/Test/badge.svg" style="max-width: 100%;">
+    </a>
+    <a href="https://github.com/SkyLostTR/Cloudflare-Update-IP/graphs/contributors">
+      <img alt="GitHub Contributors" src="https://img.shields.io/github/contributors/SkyLostTR/Cloudflare-Update-IP" style="max-width: 100%;">
+    </a>
+    <a href="https://codecov.io/gh/SkyLostTR/Cloudflare-Update-IP" rel="nofollow">
+      <img alt="Tests Coverage" src="https://codecov.io/gh/SkyLostTR/Cloudflare-Update-IP/branch/master/graph/badge.svg" style="max-width: 100%;">
+    </a>
+    <a href="https://github.com/SkyLostTR/Cloudflare-Update-IP/issues">
+      <img alt="Issues" src="https://img.shields.io/github/issues/SkyLostTR/Cloudflare-Update-IP?color=0088ff" style="max-width: 100%;">
+    </a>
+    <a href="https://github.com/SkyLostTR/Cloudflare-Update-IP/pulls">
+      <img alt="GitHub pull requests" src="https://img.shields.io/github/issues-pr/SkyLostTR/Cloudflare-Update-IP?color=0088ff" style="max-width: 100%;">
+    </a>
+    <a href="https://securityscorecards.dev/viewer/?uri=github.com/SkyLostTR/Cloudflare-Update-IP" rel="nofollow">
+      <img alt="OpenSSF Scorecard" src="https://api.securityscorecards.dev/projects/github.com/SkyLostTR/Cloudflare-Update-IP/badge" style="max-width: 100%;">
+    </a>
+</p>
+
 # Cloudflare Update IP
 
-Easily update all Cloudflare DNS `A` records to a new IP address using a simple
-Windows batch script. Ideal for server migrations or dynamic IP environments.
+Easily update all Cloudflare DNS records (A, AAAA, CNAME, TXT, SRV, MX, NS, PTR, CAA, CERT, DNSKEY, DS, LOC, NAPTR, SMIMEA, SSHFP, SVCB, TLSA, URI, and more) to a new IP address using a simple script. Ideal for server migrations, dynamic IP environments, or bulk DNS changes.
 
-## Documentation
+---
 
-Extensive documentation is now provided in two places:
+## 🚀 Features
 
-- **GitHub Pages** — browse the detailed guides in the [docs/](docs/) directory.
-- **GitHub Wiki** — the same content is mirrored under the [`wiki/`](wiki/) directory for use with the repository's wiki feature.
+- **Bulk Update:** Updates all supported DNS record types across all zones or a single zone.
+- **Flexible Matching:** Replaces any occurrence of the old IP in record content with the new IP (not just A records).
+- **.env Configuration:** Simple environment variable setup for credentials and options.
+- **Dry Run & Debug:** Preview changes and get detailed logs before applying updates.
+- **Backup & Restore:** Easily backup and restore DNS records for safety.
+- **Colorful Output:** Clear, color-coded console output for easy tracking.
+- **Windows Friendly:** Built for Windows, but works cross-platform with Python.
 
-## Features
+---
 
-- Updates all DNS `A` records across all zones or a single zone
-- Simple `.env`-based configuration
-- Colorful output via PowerShell
-- Built for Windows environments
+## 📦 Requirements
 
-## Requirements
+- Python 3.7+
+- `requests`, `python-dotenv`, `colorama` (install via `pip install -r requirements.txt`)
+- Cloudflare API token with DNS edit permissions
 
-- Windows with PowerShell
-- Cloudflare API token or global API key
+---
 
-## Quick Start
+## ⚡ Quick Start
 
 1. **Clone the repository:**
    ```sh
    git clone https://github.com/SkyLostTR/Cloudflare-Update-IP.git
    cd Cloudflare-Update-IP
    ```
-2. **Configure your environment:**
+2. **Install dependencies:**
+   ```sh
+   pip install -r requirements.txt
+   ```
+3. **Configure your environment:**
    ```sh
    copy .env.example .env
    ```
    Edit `.env` and set:
-   - `CLOUDFLARE_AUTH_EMAIL` – your Cloudflare email
-   - `CLOUDFLARE_AUTH_KEY` – your API key or token
+   - `CLOUDFLARE_API_TOKEN` – your Cloudflare API token
    - `NEW_IP` – the new IP address to assign
-   - `OLD_IP` – (optional) the current IP address
+   - `OLD_IP` – (optional) the current IP address to search/replace
    - `TARGET_DOMAIN` – (optional) domain to update (default: all zones)
-3. **Run the script:**
+   - `DRY_RUN` – (optional) set to `1` to preview changes
+   - `DEBUG` – (optional) set to `1` for verbose logging
+4. **Run the script:**
    ```sh
-   CloudflareUpdate.bat
+   python CloudflareUpdate.py
    ```
-
-## Usage
-
-- By default, every `A` record in all zones will be updated. Set `TARGET_DOMAIN` in `.env` to limit updates to a single zone.
-- Keep your `.env` file private. **Never commit it to version control.**
-- The script uses the [Cloudflare API](https://api.cloudflare.com/).
+   Or to backup/restore:
+   ```sh
+   python CloudflareUpdate.py --backup
+   python CloudflareUpdate.py --restore
+   ```
 
 ---
 
-## GitBook-style Documentation (GitHub Pages)
+## 🛠️ Usage
 
-This project supports a GitBook-style documentation site using [HonKit](https://github.com/honkit/honkit), a modern fork of GitBook.
-
-### How to Build and Preview Locally
-
-1. Install Node.js (if not already installed): https://nodejs.org/
-2. Install HonKit globally:
-   ```powershell
-   npm install -g honkit
-   ```
-3. Install project dependencies:
-   ```powershell
-   npm install
-   ```
-4. Build the documentation:
-   ```powershell
-   npm run docs:build
-   ```
-   The static site will be generated in `docs/_book`.
-5. Preview locally:
-   ```powershell
-   npm run docs:serve
-   ```
-   Then open http://localhost:4000 in your browser.
-
-### Publish to GitHub Pages
-
-1. Commit and push your changes to GitHub.
-2. In your repository, go to **Settings > Pages**.
-3. Set the source to `main` branch and `/docs/_book` folder.
-4. Save. Your documentation will be live at `https://<username>.github.io/<repo>/`.
+- By default, every supported DNS record (A, AAAA, CNAME, TXT, SRV, MX, NS, PTR, CAA, CERT, DNSKEY, DS, LOC, NAPTR, SMIMEA, SSHFP, SVCB, TLSA, URI, etc.) in all zones will be updated if their content matches the old IP.
+- Set `TARGET_DOMAIN` in `.env` to limit updates to a single zone.
+- Use `DRY_RUN=1` to preview changes without applying them.
+- Use `DEBUG=1` for detailed logs in `debug_output.txt`.
+- Always keep your `.env` file private. **Never commit it to version control.**
 
 ---
 
-## GitHub Wiki
+## 📚 Documentation
 
-To use the GitHub Wiki for your documentation:
-
-1. Go to your repository on GitHub.
-2. Click the **Wiki** tab.
-3. Create new pages and copy content from the markdown files in `docs/` (e.g., `getting-started.md`, `usage.md`, etc.).
-4. The Wiki is managed separately from your main repo and can be edited directly on GitHub or cloned via git.
+- **GitHub Wiki:** Full documentation and usage guides are available at: [https://github.com/SkyLostTR/Cloudflare-Update-IP/wiki](https://github.com/SkyLostTR/Cloudflare-Update-IP/wiki)
 
 ---
 
-## License
+## 🙏 Credits
+
+Created and maintained by [@SkyLostTR](https://github.com/SkyLostTR)
+
+---
+
+## 🪪 License
 
 Released under the MIT License. See [LICENSE](LICENSE).
+
+---
+
+## ⚠️ Disclaimer
+
+This project is provided as-is, without any warranty or guarantee of fitness for a particular purpose. Use at your own risk. The author (@SkyLostTR) is not responsible for any data loss, misconfiguration, downtime, or other issues that may arise from using this script. Always backup your DNS records before making bulk changes and review all changes in dry-run mode before applying them.
+
+---
 
