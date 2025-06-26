@@ -1,11 +1,14 @@
 # Cloudflare Update IP
 
-Easily update all Cloudflare DNS `A` records to a new IP address using a simple Windows batch script. Ideal for server migrations or dynamic IP environments.
+Easily update all Cloudflare DNS `A` records to a new IP address using a simple
+Windows batch script. Ideal for server migrations or dynamic IP environments.
 
 ## Documentation
 
-- **GitBook-style site:** Full documentation is available in the [docs/](docs/) directory and can be published as a GitBook-style site using HonKit and GitHub Pages (see below).
-- **GitHub Wiki:** You can also use the GitHub Wiki for documentation (see instructions below).
+Extensive documentation is now provided in two places:
+
+- **GitHub Pages** — browse the detailed guides in the [docs/](docs/) directory.
+- **GitHub Wiki** — the same content is mirrored under the [`wiki/`](wiki/) directory for use with the repository's wiki feature.
 
 ## Features
 
