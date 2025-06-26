@@ -11,15 +11,22 @@ import re
 
 __version__ = "1.0.0"
 
+try:
+    from pyfiglet import figlet_format
+except ImportError:  # pragma: no cover - optional dependency
+    figlet_format = None
+
 # Color output for Windows
 try:
     from colorama import init, Fore, Style
     init()
     GREEN = Fore.GREEN
     RED = Fore.RED
+    CYAN = Fore.CYAN
+    YELLOW = Fore.YELLOW
     RESET = Style.RESET_ALL
 except ImportError:
-    GREEN = RED = RESET = ''
+    GREEN = RED = CYAN = YELLOW = RESET = ''
 
 load_dotenv()
 
@@ -40,8 +47,8 @@ CENSOR = None
 HEADERS = None
 
 def log_info(msg: str):
+    print(f"{CYAN}ℹ️  {msg}{RESET}")
     """Print an informational message in green."""
-    print(f"{GREEN}ℹ️  {msg}{RESET}")
 
 def log_success(msg: str):
     """Print a success message."""
@@ -52,8 +59,8 @@ def log_error(msg: str):
     print(f"{RED}❌ {msg}{RESET}")
 
 def log_dryrun(msg: str):
+    print(f"{YELLOW}🟡 [DRY RUN] {msg}{RESET}")
     """Print a message when running with --dry-run."""
-    print(f"{GREEN}🟡 [DRY RUN] {msg}{RESET}")
 
 def check_for_update():
     """Check GitHub for a newer version of this script."""
@@ -147,6 +154,15 @@ def debug(msg: str):
     if DEBUG:
         with open('debug_output.txt', 'a', encoding='utf-8') as f:
             f.write(msg + '\n')
+
+def print_banner():
+    text = "Cloudflare Batch Tool"
+    if figlet_format:
+        banner = figlet_format(text)
+    else:
+        banner = text
+    print(f"{CYAN}{banner}{RESET}")
+    print(f"{YELLOW}(credit: @SkyLostTR){RESET}")
 
 def censor_value(val, kind=None):
     """Mask sensitive values before printing."""
@@ -330,8 +346,9 @@ def main():
     import argparse
     check_for_update()
     init_env()
+    print_banner()
     print("\n" + "="*50)
-    print(f"🚀 Starting Cloudflare DNS update script for {TARGET_DOMAIN or 'all zones'}!")
+    print(f"{GREEN}🚀 Starting Cloudflare DNS update script for {TARGET_DOMAIN or 'all zones'}!{RESET}")
     print("="*50 + "\n")
     print_censored_env()
     parser = argparse.ArgumentParser(description='Cloudflare DNS update script with backup/restore')
@@ -421,7 +438,8 @@ def main():
                     if DEBUG:
                         debug(f"[ERROR] Failed to update record {rec['id']} [{rec['type']}]: {resp}")
     print("\n" + "="*50)
-    print(f"🎉 DNS update script completed.\nTotal records: {total} | Updated: {updated} | Skipped: {skipped}")
+    print(f"{GREEN}🎉 DNS update script completed.{RESET}")
+    print(f"{CYAN}Total records: {total} | Updated: {updated} | Skipped: {skipped}{RESET}")
     print("="*50)
     input("\nPress Enter to exit...")
 
