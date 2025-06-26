@@ -1,55 +1,47 @@
-# Cloudflare-Update-IP
+# Cloudflare Update IP
 
-A Windows batch script to update all Cloudflare DNS records (A records) under your account to a new IP address. Useful for dynamic IP environments or when migrating to a new server.
+This repository contains a Windows batch script that updates every `A` record in your Cloudflare account to a new IP address. It is useful when migrating servers or working with dynamic addresses.
 
 ## Features
 
-- Updates all DNS `A` records for all zones (domains) in your Cloudflare account to a new IP.
-- Easy configuration via `.env` file.
-- Color-coded output for clarity.
-- Designed for Windows (uses batch + PowerShell).
+- Updates all DNS `A` records across all zones
+- Simple `.env` based configuration
+- Colorful output via PowerShell
+- Built for Windows environments
 
-## Prerequisites
+## Requirements
 
-- Windows OS
-- PowerShell installed (default in modern Windows)
-- Cloudflare API credentials (API key & email)
+- Windows with PowerShell available
+- A Cloudflare API token or global API key
 
 ## Setup
 
-1. **Clone the repository:**
-
+1. **Clone the repository**
    ```sh
    git clone https://github.com/SkyLostTR/Cloudflare-Update-IP.git
    cd Cloudflare-Update-IP
    ```
-
-2. **Configure the `.env` file:**
-
-   - Copy `.env.example` to `.env`:
-
-     ```sh
-     copy .env.example .env
-     ```
-
-   - Edit `.env` and fill in your details:
-     - `CLOUDFLARE_AUTH_EMAIL`: Your Cloudflare email
-     - `CLOUDFLARE_AUTH_KEY`: Your Cloudflare API key (recommended: use a restricted API token)
-     - `OLD_IP`: (Optional) Your current IP
-     - `NEW_IP`: The new IP address you want to set
-
-3. **Run the script:**
-
+2. **Create your configuration**
+   ```sh
+   copy .env.example .env
+   ```
+   Edit `.env` and provide:
+   - `CLOUDFLARE_AUTH_EMAIL` – your Cloudflare email
+   - `CLOUDFLARE_AUTH_KEY` – your API key or token
+   - `NEW_IP` – the IP address that should be assigned
+   - `OLD_IP` – (optional) the IP address currently in use
+3. **Run the script**
    ```sh
    CloudflareUpdate.bat
    ```
 
 ## Notes
 
-- The script updates all `A` records for all zones. If you want to restrict this, modify the logic as needed.
-- Do **not** share your API key or .env file.
-- The script is provided as-is. Test in a safe environment first.
+- Every `A` record in all zones will be updated. Adjust the script if you need more control.
+- Keep your `.env` file private. Never commit it to version control.
+- The script makes requests to the [Cloudflare API](https://api.cloudflare.com/).
 
 ## License
 
-See [LICENSE](LICENSE).
+Released under the MIT License. See [LICENSE](LICENSE).
+
