@@ -3,6 +3,8 @@ import sys
 import requests
 from dotenv import load_dotenv
 from typing import Optional
+import getpass
+from dotenv import find_dotenv
 
 # Color output for Windows
 try:
@@ -19,6 +21,9 @@ load_dotenv()
 DEBUG = os.getenv('DEBUG', '0').lower() in ('1', 'true')
 CENSOR = os.getenv('CENSOR', '1').lower() in ('1', 'true', 'yes')
 
+# INTERACTIVE_ENV must be defined before any function uses it
+INTERACTIVE_ENV = False
+
 def debug(msg: str):
     if DEBUG:
         with open('debug_output.txt', 'a', encoding='utf-8') as f:
@@ -26,15 +31,18 @@ def debug(msg: str):
 
 def get_env(var: str, required: bool = True) -> Optional[str]:
     val = os.getenv(var)
-    if required and not val:
+    if required and not val and not INTERACTIVE_ENV:
         print(f"Missing required environment variable: {var}")
         sys.exit(1)
     return val
 
 CLOUDFLARE_API_TOKEN = get_env('CLOUDFLARE_API_TOKEN')
 NEW_IP = get_env('NEW_IP')
+OLD_IP = os.getenv('OLD_IP')
 TARGET_DOMAIN = os.getenv('TARGET_DOMAIN')
 DRY_RUN = os.getenv('DRY_RUN', '0').lower() in ('1', 'true')
+DEBUG = os.getenv('DEBUG', '0').lower() in ('1', 'true')
+CENSOR = os.getenv('CENSOR', '1').lower() in ('1', 'true', 'yes')
 
 HEADERS = {
     'Authorization': f'Bearer {CLOUDFLARE_API_TOKEN}',
@@ -114,6 +122,158 @@ def print_censored_env():
     print("\nCENSORED ENVIRONMENT (safe for screenshot):")
     for k, v in censored.items():
         print(f"  {k} = {v}")
+
+print("\n" + "="*50)
+print(f"🚀 Starting Cloudflare DNS update script for {TARGET_DOMAIN or 'all zones'}!")
+print("="*50 + "\n")
+print_censored_env()
+
+def get_zones():
+    url = 'https://api.cloudflare.com/client/v4/zones/?per_page=500'
+    resp = requests.get(url, headers=HEADERS)
+    resp.raise_for_status()
+    zones = resp.json()['result']
+    if TARGET_DOMAIN:
+        zones = [z for z in zones if z['name'] == TARGET_DOMAIN]
+    return zones
+
+def get_records(zone_id, record_type=None):
+    url = f'https://api.cloudflare.com/client/v4/zones/{zone_id}/dns_records?per_page=500'
+    if record_type:
+        url += f'&type={record_type}'
+    resp = requests.get(url, headers=HEADERS)
+    resp.raise_for_status()
+    return resp.json()['result']
+
+def update_generic_record(zone_id, record, new_content):
+    url = f'https://api.cloudflare.com/client/v4/zones/{zone_id}/dns_records/{record["id"]}'
+    data = {
+        'type': record['type'],
+        'name': record['name'],
+        'content': new_content,
+        'ttl': record.get('ttl', 3600),
+        'proxied': record.get('proxied', False) if record['type'] in ['A', 'AAAA', 'CNAME'] else None
+    }
+    # Remove proxied if not supported
+    if data['proxied'] is None:
+        data.pop('proxied')
+    resp = requests.put(url, headers=HEADERS, json=data)
+    return resp.ok, resp.text
+
+def backup_records(zones, backup_file='cf_backup.json'):
+    import json
+    backup_data = {}
+    for zone in zones:
+        zone_id = zone['id']
+        zone_name = zone['name']
+        backup_data[zone_name] = []
+        for rtype in ['A', 'TXT', 'SRV', 'MX']:
+            try:
+                recs = get_records(zone_id, rtype)
+                backup_data[zone_name].extend(recs)
+            except Exception as e:
+                log_error(f"Failed to fetch {rtype} records for backup in zone {zone_id}: {e}")
+    with open(backup_file, 'w', encoding='utf-8') as f:
+        json.dump(backup_data, f, indent=2)
+    log_success(f"Backup completed: {backup_file}")
+
+
+def restore_records(backup_file='cf_backup.json'):
+    import json
+    if not os.path.exists(backup_file):
+        log_error(f"Backup file not found: {backup_file}")
+        return
+    with open(backup_file, 'r', encoding='utf-8') as f:
+        backup_data = json.load(f)
+    for zone_name, records in backup_data.items():
+        log_info(f"Restoring records for zone: {zone_name}")
+        # Find zone_id by name
+        zones = get_zones()
+        zone = next((z for z in zones if z['name'] == zone_name), None)
+        if not zone:
+            log_error(f"Zone not found: {zone_name}")
+            continue
+        zone_id = zone['id']
+        for rec in records:
+            # Only restore supported types
+            if rec['type'] not in ['A', 'TXT', 'SRV', 'MX']:
+                continue
+            ok, resp = update_generic_record(zone_id, rec, rec['content'])
+            if ok:
+                log_success(f"Restored record {rec['id']} ({rec['name']}) [{rec['type']}]")
+            else:
+                log_error(f"Failed to restore record {rec['id']} ({rec['name']}) [{rec['type']}]")
+
+def prompt_for_env():
+    print("\nNo .env file found or required variables missing. Please enter the required parameters:")
+    def ask(prompt, default=None, secret=False):
+        if default:
+            prompt = f"{prompt} [{default}]: "
+        else:
+            prompt = f"{prompt}: "
+        if secret:
+            val = getpass.getpass(prompt)
+        else:
+            val = input(prompt)
+        return val if val else default
+
+    api_token = ask("Cloudflare API Token", secret=True)
+    new_ip = ask("New IP address (to set)")
+    old_ip = ask("Old IP address (to replace, optional)")
+    target_domain = ask("Target domain (leave blank for all zones)")
+    dry_run = ask("Dry run? (1/0)", default="1")
+    debug = ask("Enable debug? (1/0)", default="0")
+    censor = ask("Censor output? (1/0)", default="1")
+    return {
+        'CLOUDFLARE_API_TOKEN': api_token,
+        'NEW_IP': new_ip,
+        'OLD_IP': old_ip,
+        'TARGET_DOMAIN': target_domain,
+        'DRY_RUN': dry_run,
+        'DEBUG': debug,
+        'CENSOR': censor
+    }
+
+# Try to load .env, if not found or missing required, prompt interactively
+try:
+    dotenv_exists = False
+    try:
+        import importlib
+        dotenv_spec = importlib.util.find_spec('dotenv')
+        if dotenv_spec is not None:
+            dotenv_module = importlib.util.module_from_spec(dotenv_spec)
+            dotenv_spec.loader.exec_module(dotenv_module)
+            if hasattr(dotenv_module, 'find_dotenv'):
+                dotenv_path = dotenv_module.find_dotenv()
+                dotenv_exists = os.path.exists(dotenv_path) if dotenv_path else False
+    except Exception:
+        dotenv_exists = False
+    if not dotenv_exists:
+        for fname in ['.env', '.env.local', '.env.example']:
+            if os.path.exists(fname):
+                dotenv_exists = True
+                break
+except Exception:
+    dotenv_exists = False
+
+if not dotenv_exists or not os.getenv('CLOUDFLARE_API_TOKEN') or not os.getenv('NEW_IP'):
+    INTERACTIVE_ENV = True
+    env = prompt_for_env()
+    CLOUDFLARE_API_TOKEN = env['CLOUDFLARE_API_TOKEN']
+    NEW_IP = env['NEW_IP']
+    OLD_IP = env['OLD_IP']
+    TARGET_DOMAIN = env['TARGET_DOMAIN']
+    DRY_RUN = env['DRY_RUN'].lower() in ('1', 'true', 'yes')
+    DEBUG = env['DEBUG'].lower() in ('1', 'true', 'yes')
+    CENSOR = env['CENSOR'].lower() in ('1', 'true', 'yes')
+else:
+    CLOUDFLARE_API_TOKEN = get_env('CLOUDFLARE_API_TOKEN')
+    NEW_IP = get_env('NEW_IP')
+    OLD_IP = os.getenv('OLD_IP')
+    TARGET_DOMAIN = os.getenv('TARGET_DOMAIN')
+    DRY_RUN = os.getenv('DRY_RUN', '0').lower() in ('1', 'true')
+    DEBUG = os.getenv('DEBUG', '0').lower() in ('1', 'true')
+    CENSOR = os.getenv('CENSOR', '1').lower() in ('1', 'true', 'yes')
 
 print("\n" + "="*50)
 print(f"🚀 Starting Cloudflare DNS update script for {TARGET_DOMAIN or 'all zones'}!")
