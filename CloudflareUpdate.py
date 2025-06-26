@@ -6,6 +6,11 @@ from typing import Optional
 import getpass
 from dotenv import find_dotenv
 
+try:
+    from pyfiglet import figlet_format
+except ImportError:  # pragma: no cover - optional dependency
+    figlet_format = None
+
 # Color output for Windows
 try:
     from colorama import init, Fore, Style
@@ -109,19 +114,13 @@ def debug(msg: str):
             f.write(msg + '\n')
 
 def print_banner():
-    banner = r"""
-   ____ _                 _       _ _             
-  / ___| | ___  _   _  __| | ___ | (_)_ __   ___  
- | |   | |/ _ \| | | |/ _` |/ _ \| | | '_ \ / _ \ 
- | |___| | (_) | |_| | (_| |  __/| | | | | |  __/ 
-  \____|_|\___/ \__,_|\__,_|\___||_|_|_| |_|\___| 
-      ___ ___       _    _           _            
-     |_ _|_ _|_ __ | |_ | | ___  ___| |_ ___  _ __
-      | | | || '_ \| __|| |/ _ \/ __| __/ _ \| '__|
-      | | | || | | | |_ | |  __/\__ \ || (_) | |   
-     |___|___|_| |_|\__||_|\___||___/\__\___/|_|   
-"""
+    text = "Cloudflare Batch Tool"
+    if figlet_format:
+        banner = figlet_format(text)
+    else:
+        banner = text
     print(f"{CYAN}{banner}{RESET}")
+    print(f"{YELLOW}(credit: @SkyLostTR){RESET}")
 
 def censor_value(val, kind=None):
     if not CENSOR or not val:

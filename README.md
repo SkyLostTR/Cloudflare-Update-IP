@@ -43,7 +43,7 @@ Easily update all Cloudflare DNS records (A, AAAA, CNAME, TXT, SRV, MX, NS, PTR,
 ## 📦 Requirements
 
 - Python 3.7+
-- `requests`, `python-dotenv`, `colorama` (install via `pip install -r requirements.txt`)
+- `requests`, `python-dotenv`, `colorama`, `pyfiglet` (install via `pip install -r requirements.txt`)
 - Cloudflare API token with DNS edit permissions
 
 ---
@@ -101,6 +101,7 @@ Easily update all Cloudflare DNS records (A, AAAA, CNAME, TXT, SRV, MX, NS, PTR,
 ## 🙏 Credits
 
 Created and maintained by [@SkyLostTR](https://github.com/SkyLostTR)
+ASCII banner generated with [pyfiglet](https://pypi.org/project/pyfiglet/)
 
 ---
 
