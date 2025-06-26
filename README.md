@@ -1,22 +1,25 @@
 <p align="center" dir="auto">
-    <a href="https://github.com/SkyLostTR/Cloudflare-Update-IP/actions">
-      <img alt="Tests Passing" src="https://github.com/SkyLostTR/Cloudflare-Update-IP/workflows/Test/badge.svg" style="max-width: 100%;">
-    </a>
-    <a href="https://github.com/SkyLostTR/Cloudflare-Update-IP/graphs/contributors">
-      <img alt="GitHub Contributors" src="https://img.shields.io/github/contributors/SkyLostTR/Cloudflare-Update-IP" style="max-width: 100%;">
-    </a>
-    <a href="https://codecov.io/gh/SkyLostTR/Cloudflare-Update-IP" rel="nofollow">
-      <img alt="Tests Coverage" src="https://codecov.io/gh/SkyLostTR/Cloudflare-Update-IP/branch/master/graph/badge.svg" style="max-width: 100%;">
-    </a>
-    <a href="https://github.com/SkyLostTR/Cloudflare-Update-IP/issues">
-      <img alt="Issues" src="https://img.shields.io/github/issues/SkyLostTR/Cloudflare-Update-IP?color=0088ff" style="max-width: 100%;">
-    </a>
-    <a href="https://github.com/SkyLostTR/Cloudflare-Update-IP/pulls">
-      <img alt="GitHub pull requests" src="https://img.shields.io/github/issues-pr/SkyLostTR/Cloudflare-Update-IP?color=0088ff" style="max-width: 100%;">
-    </a>
-    <a href="https://securityscorecards.dev/viewer/?uri=github.com/SkyLostTR/Cloudflare-Update-IP" rel="nofollow">
-      <img alt="OpenSSF Scorecard" src="https://api.securityscorecards.dev/projects/github.com/SkyLostTR/Cloudflare-Update-IP/badge" style="max-width: 100%;">
-    </a>
+   <a href="https://github.com/SkyLostTR/Cloudflare-Update-IP/graphs/contributors">
+     <img alt="GitHub Contributors" src="https://img.shields.io/github/contributors/SkyLostTR/Cloudflare-Update-IP" style="max-width: 100%;">
+   </a>
+   <a href="https://github.com/SkyLostTR/Cloudflare-Update-IP/issues">
+     <img alt="Issues" src="https://img.shields.io/github/issues/SkyLostTR/Cloudflare-Update-IP?color=0088ff" style="max-width: 100%;">
+   </a>
+   <a href="https://github.com/SkyLostTR/Cloudflare-Update-IP/pulls">
+     <img alt="GitHub pull requests" src="https://img.shields.io/github/issues-pr/SkyLostTR/Cloudflare-Update-IP?color=0088ff" style="max-width: 100%;">
+   </a>
+   <a href="https://github.com/SkyLostTR/Cloudflare-Update-IP/stargazers">
+     <img alt="GitHub stars" src="https://img.shields.io/github/stars/SkyLostTR/Cloudflare-Update-IP?color=yellow" style="max-width: 100%;">
+   </a>
+   <a href="https://github.com/SkyLostTR/Cloudflare-Update-IP/network/members">
+     <img alt="GitHub forks" src="https://img.shields.io/github/forks/SkyLostTR/Cloudflare-Update-IP?color=orange" style="max-width: 100%;">
+   </a>
+   <a href="https://github.com/SkyLostTR/Cloudflare-Update-IP/blob/main/LICENSE">
+     <img alt="License" src="https://img.shields.io/github/license/SkyLostTR/Cloudflare-Update-IP?color=blue" style="max-width: 100%;">
+   </a>
+   <a href="https://pypi.org/project/requests/">
+     <img alt="Python Version" src="https://img.shields.io/badge/python-3.7%2B-blue.svg" style="max-width: 100%;">
+   </a>
 </p>
 
 # Cloudflare Update IP
