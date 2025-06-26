@@ -19,6 +19,9 @@ for /f "usebackq tokens=1,* delims==" %%A in (".env") do (
     set "%%A=%%B"
 )
 
+rem Allow DRY_RUN override from command line
+if not "%1"=="" set "DRY_RUN=%1"
+
 set "green=powershell -Command \"Write-Host -ForegroundColor Green\""
 set "red=powershell -Command \"Write-Host -ForegroundColor Red\""
 
@@ -41,6 +44,12 @@ if "%TARGET_DOMAIN%"=="" (
     set "DOMAIN_MSG=%TARGET_DOMAIN%"
 )
 
+if /i "%DRY_RUN%"=="1" (
+    echo [DRY RUN MODE ENABLED: No changes will be made.]
+) else if /i "%DRY_RUN%"=="true" (
+    echo [DRY RUN MODE ENABLED: No changes will be made.]
+)
+
 echo Starting Cloudflare DNS update script for %DOMAIN_MSG%...
 echo =======================================
 
@@ -58,11 +67,17 @@ for /f "delims=" %%a in ('powershell -Command "Invoke-RestMethod -Uri https://ap
             if !errorlevel! equ 0 (
                 set record_id=%%b
                 echo Updating record %%b in zone %%a to IP %NEW_IP%...
-                powershell -Command "Invoke-RestMethod -Uri 'https://api.cloudflare.com/client/v4/zones/%%a/dns_records/%%b' -Method PUT -Headers @{\"X-Auth-Email\"=\"%CLOUDFLARE_AUTH_EMAIL%\";\"X-Auth-Key\"=\"%CLOUDFLARE_AUTH_KEY%\";\"Content-Type\"=\"application/json\"} -Body (@{type='A'; content='%NEW_IP%'; ttl=3600; proxied=\$false} | ConvertTo-Json)" >nul 2>&1
-                if !errorlevel! equ 0 (
-                    call !green! "[SUCCESS] Updated record %%b"
+                if /i "%DRY_RUN%"=="1" (
+                    echo [DRY RUN] Would update record %%b in zone %%a to IP %NEW_IP%
+                ) else if /i "%DRY_RUN%"=="true" (
+                    echo [DRY RUN] Would update record %%b in zone %%a to IP %NEW_IP%
                 ) else (
-                    call !red! "[ERROR] Failed to update record %%b"
+                    powershell -Command "Invoke-RestMethod -Uri 'https://api.cloudflare.com/client/v4/zones/%%a/dns_records/%%b' -Method PUT -Headers @{\"X-Auth-Email\"=\"%CLOUDFLARE_AUTH_EMAIL%\";\"X-Auth-Key\"=\"%CLOUDFLARE_AUTH_KEY%\";\"Content-Type\"=\"application/json\"} -Body (@{type='A'; content='%NEW_IP%'; ttl=3600; proxied=\$false} | ConvertTo-Json)" >nul 2>&1
+                    if !errorlevel! equ 0 (
+                        call !green! "[SUCCESS] Updated record %%b"
+                    ) else (
+                        call !red! "[ERROR] Failed to update record %%b"
+                    )
                 )
             )
         )
