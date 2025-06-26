@@ -35,11 +35,17 @@ if "%NEW_IP%"=="" (
     exit /b 1
 )
 
-echo Starting Cloudflare DNS update script...
+if "%TARGET_DOMAIN%"=="" (
+    set "DOMAIN_MSG=all zones"
+) else (
+    set "DOMAIN_MSG=%TARGET_DOMAIN%"
+)
+
+echo Starting Cloudflare DNS update script for %DOMAIN_MSG%...
 echo =======================================
 
-rem Fetch all zone IDs
-for /f "delims=" %%a in ('powershell -Command "Invoke-RestMethod -Uri https://api.cloudflare.com/client/v4/zones/?per_page=500 -Method GET -Headers @{\"X-Auth-Email\"=\"%CLOUDFLARE_AUTH_EMAIL%\";\"X-Auth-Key\"=\"%CLOUDFLARE_AUTH_KEY%\";\"Content-Type\"=\"application/json\"} | ForEach-Object { $_.result } | Select-Object -ExpandProperty id"') do (
+rem Fetch zone IDs (filtered by TARGET_DOMAIN if set)
+for /f "delims=" %%a in ('powershell -Command "Invoke-RestMethod -Uri https://api.cloudflare.com/client/v4/zones/?per_page=500 -Method GET -Headers @{\"X-Auth-Email\"=\"%CLOUDFLARE_AUTH_EMAIL%\";\"X-Auth-Key\"=\"%CLOUDFLARE_AUTH_KEY%\";\"Content-Type\"=\"application/json\"} | ForEach-Object { $_.result } | Where-Object { \"%TARGET_DOMAIN%\" -eq \"\" -or $_.name -eq \"%TARGET_DOMAIN%\" } | Select-Object -ExpandProperty id"') do (
     set zone_id=%%a
     echo Found zone ID: %%a
 

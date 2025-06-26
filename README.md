@@ -4,7 +4,7 @@ This repository contains a Windows batch script that updates every `A` record in
 
 ## Features
 
-- Updates all DNS `A` records across all zones
+- Updates all DNS `A` records across all zones or a single zone
 - Simple `.env` based configuration
 - Colorful output via PowerShell
 - Built for Windows environments
@@ -30,6 +30,7 @@ This repository contains a Windows batch script that updates every `A` record in
    - `CLOUDFLARE_AUTH_KEY` – your API key or token
    - `NEW_IP` – the IP address that should be assigned
    - `OLD_IP` – (optional) the IP address currently in use
+   - `TARGET_DOMAIN` – (optional) domain to update instead of all zones
 3. **Run the script**
    ```sh
    CloudflareUpdate.bat
@@ -37,7 +38,7 @@ This repository contains a Windows batch script that updates every `A` record in
 
 ## Notes
 
-- Every `A` record in all zones will be updated. Adjust the script if you need more control.
+ - By default every `A` record in all zones will be updated. Set `TARGET_DOMAIN` to limit updates to a single zone.
 - Keep your `.env` file private. Never commit it to version control.
 - The script makes requests to the [Cloudflare API](https://api.cloudflare.com/).
 
