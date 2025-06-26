@@ -149,7 +149,10 @@ def main():
     total = 0
     updated = 0
     skipped = 0
-    record_types = ['A', 'TXT', 'SRV', 'MX']
+    # Support more DNS record types
+    record_types = [
+        'A', 'AAAA', 'CNAME', 'TXT', 'SRV', 'MX', 'NS', 'PTR', 'CAA', 'CERT', 'DNSKEY', 'DS', 'LOC', 'NAPTR', 'SMIMEA', 'SSHFP', 'SVCB', 'TLSA', 'URI'
+    ]
     OLD_IP = os.getenv('OLD_IP')
     for zone in zones:
         zone_id = zone['id']
@@ -174,7 +177,6 @@ def main():
                 if DEBUG:
                     debug(f"[DEBUG] Skipped: Empty field in record {rec}")
                 continue
-            # Only update if OLD_IP is in content (for non-A records)
             should_update = False
             new_content = rec['content']
             if rec['type'] == 'A':
