@@ -1,0 +1,9 @@
+{
+  "title": "Cloudflare Update IP",
+  "author": "SkyLostTR",
+  "plugins": ["-sharing"],
+  "structure": {
+    "readme": "README.md",
+    "summary": "SUMMARY.md"
+  }
+}

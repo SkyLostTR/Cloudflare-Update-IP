@@ -1,6 +1,6 @@
 # Cloudflare Update IP
 
-Easily update all Cloudflare DNS `A` records to a new IP address using a simple Windows batch script. Ideal for server migrations or dynamic IP environments.
+Easily update all Cloudflare DNS `A` records to a new IP address using a cross-platform **Python** script. Ideal for server migrations or dynamic IP environments.
 
 ## Documentation
 
@@ -11,13 +11,13 @@ Easily update all Cloudflare DNS `A` records to a new IP address using a simple 
 
 - Updates all DNS `A` records across all zones or a single zone
 - Simple `.env`-based configuration
-- Colorful output via PowerShell
-- Built for Windows environments
+- Colored output via [colorama](https://pypi.org/project/colorama/)
+- Runs on any OS with Python 3
 
 ## Requirements
 
-- Windows with PowerShell
-- Cloudflare API token or global API key
+- Python 3
+- Cloudflare API token with DNS edit permissions
 
 ## Quick Start
 
@@ -28,17 +28,21 @@ Easily update all Cloudflare DNS `A` records to a new IP address using a simple 
    ```
 2. **Configure your environment:**
    ```sh
-   copy .env.example .env
+   cp .env.example .env  # use `copy` on Windows
    ```
    Edit `.env` and set:
-   - `CLOUDFLARE_AUTH_EMAIL` – your Cloudflare email
-   - `CLOUDFLARE_AUTH_KEY` – your API key or token
+   - `CLOUDFLARE_API_TOKEN` – your Cloudflare API token
    - `NEW_IP` – the new IP address to assign
    - `OLD_IP` – (optional) the current IP address
    - `TARGET_DOMAIN` – (optional) domain to update (default: all zones)
-3. **Run the script:**
+   - Set `DRY_RUN` to `true` to preview changes
+3. **Install dependencies:**
    ```sh
-   CloudflareUpdate.bat
+   pip install -r requirements.txt
+   ```
+4. **Run the script:**
+   ```sh
+   python CloudflareUpdate.py
    ```
 
 ## Usage

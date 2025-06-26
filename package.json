@@ -1,0 +1,11 @@
+{
+  "name": "cloudflare-update-ip-docs",
+  "private": true,
+  "devDependencies": {
+    "honkit": "^4.0.6"
+  },
+  "scripts": {
+    "docs:build": "honkit build docs docs/_book",
+    "docs:serve": "honkit serve docs"
+  }
+}
