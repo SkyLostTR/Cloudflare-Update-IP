@@ -36,18 +36,15 @@ def get_env(var: str, required: bool = True) -> Optional[str]:
         sys.exit(1)
     return val
 
-CLOUDFLARE_API_TOKEN = get_env('CLOUDFLARE_API_TOKEN')
-NEW_IP = get_env('NEW_IP')
+CLOUDFLARE_API_TOKEN = os.getenv('CLOUDFLARE_API_TOKEN')
+NEW_IP = os.getenv('NEW_IP')
 OLD_IP = os.getenv('OLD_IP')
 TARGET_DOMAIN = os.getenv('TARGET_DOMAIN')
 DRY_RUN = os.getenv('DRY_RUN', '0').lower() in ('1', 'true')
 DEBUG = os.getenv('DEBUG', '0').lower() in ('1', 'true')
 CENSOR = os.getenv('CENSOR', '1').lower() in ('1', 'true', 'yes')
 
-HEADERS = {
-    'Authorization': f'Bearer {CLOUDFLARE_API_TOKEN}',
-    'Content-Type': 'application/json',
-}
+HEADERS = {}
 
 def log_info(msg: str):
     print(f"{GREEN}ℹ️  {msg}{RESET}")
@@ -266,6 +263,10 @@ if not dotenv_exists or not os.getenv('CLOUDFLARE_API_TOKEN') or not os.getenv('
     DRY_RUN = env['DRY_RUN'].lower() in ('1', 'true', 'yes')
     DEBUG = env['DEBUG'].lower() in ('1', 'true', 'yes')
     CENSOR = env['CENSOR'].lower() in ('1', 'true', 'yes')
+    HEADERS = {
+        'Authorization': f'Bearer {CLOUDFLARE_API_TOKEN}',
+        'Content-Type': 'application/json',
+    }
 else:
     CLOUDFLARE_API_TOKEN = get_env('CLOUDFLARE_API_TOKEN')
     NEW_IP = get_env('NEW_IP')
@@ -274,6 +275,10 @@ else:
     DRY_RUN = os.getenv('DRY_RUN', '0').lower() in ('1', 'true')
     DEBUG = os.getenv('DEBUG', '0').lower() in ('1', 'true')
     CENSOR = os.getenv('CENSOR', '1').lower() in ('1', 'true', 'yes')
+    HEADERS = {
+        'Authorization': f'Bearer {CLOUDFLARE_API_TOKEN}',
+        'Content-Type': 'application/json',
+    }
 
 print("\n" + "="*50)
 print(f"🚀 Starting Cloudflare DNS update script for {TARGET_DOMAIN or 'all zones'}!")
