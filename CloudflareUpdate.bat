@@ -46,22 +46,28 @@ echo =======================================
 
 rem Fetch zone IDs (filtered by TARGET_DOMAIN if set)
 for /f "delims=" %%a in ('powershell -Command "Invoke-RestMethod -Uri https://api.cloudflare.com/client/v4/zones/?per_page=500 -Method GET -Headers @{\"X-Auth-Email\"=\"%CLOUDFLARE_AUTH_EMAIL%\";\"X-Auth-Key\"=\"%CLOUDFLARE_AUTH_KEY%\";\"Content-Type\"=\"application/json\"} | ForEach-Object { $_.result } | Where-Object { \"%TARGET_DOMAIN%\" -eq \"\" -or $_.name -eq \"%TARGET_DOMAIN%\" } | Select-Object -ExpandProperty id"') do (
-    set zone_id=%%a
-    echo Found zone ID: %%a
+    rem Only process if looks like a valid 32-char hex ID
+    echo %%a | findstr /R /C:"^[a-fA-F0-9]\{32\}$" >nul
+    if !errorlevel! equ 0 (
+        set zone_id=%%a
+        echo Found zone ID: %%a
 
-    rem Fetch DNS record IDs for the zone
-    for /f "delims=" %%b in ('powershell -Command "Invoke-RestMethod -Uri https://api.cloudflare.com/client/v4/zones/%%a/dns_records?per_page=500 -Method GET -Headers @{\"X-Auth-Email\"=\"%CLOUDFLARE_AUTH_EMAIL%\";\"X-Auth-Key\"=\"%CLOUDFLARE_AUTH_KEY%\";\"Content-Type\"=\"application/json\"} | ForEach-Object { $_.result } | Where-Object { $_.type -eq 'A' } | Select-Object -ExpandProperty id"') do (
-        set record_id=%%b
-        echo Updating record %%b in zone %%a to IP %NEW_IP%...
-        powershell -Command "Invoke-RestMethod -Uri 'https://api.cloudflare.com/client/v4/zones/%%a/dns_records/%%b' -Method PUT -Headers @{\"X-Auth-Email\"=\"%CLOUDFLARE_AUTH_EMAIL%\";\"X-Auth-Key\"=\"%CLOUDFLARE_AUTH_KEY%\";\"Content-Type\"=\"application/json\"} -Body (@{type='A'; content='%NEW_IP%'; ttl=3600; proxied=$false} | ConvertTo-Json)" >nul 2>&1
-        if !errorlevel! equ 0 (
-            !green! "[SUCCESS] Updated record %%b"
-        ) else (
-            !red! "[ERROR] Failed to update record %%b"
+        rem Fetch DNS record IDs for the zone
+        for /f "delims=" %%b in ('powershell -Command "Invoke-RestMethod -Uri https://api.cloudflare.com/client/v4/zones/%%a/dns_records?per_page=500 -Method GET -Headers @{\"X-Auth-Email\"=\"%CLOUDFLARE_AUTH_EMAIL%\";\"X-Auth-Key\"=\"%CLOUDFLARE_AUTH_KEY%\";\"Content-Type\"=\"application/json\"} | ForEach-Object { $_.result } | Where-Object { $_.type -eq 'A' } | Select-Object -ExpandProperty id"') do (
+            echo %%b | findstr /R /C:"^[a-fA-F0-9]\{32\}$" >nul
+            if !errorlevel! equ 0 (
+                set record_id=%%b
+                echo Updating record %%b in zone %%a to IP %NEW_IP%...
+                powershell -Command "Invoke-RestMethod -Uri 'https://api.cloudflare.com/client/v4/zones/%%a/dns_records/%%b' -Method PUT -Headers @{\"X-Auth-Email\"=\"%CLOUDFLARE_AUTH_EMAIL%\";\"X-Auth-Key\"=\"%CLOUDFLARE_AUTH_KEY%\";\"Content-Type\"=\"application/json\"} -Body (@{type='A'; content='%NEW_IP%'; ttl=3600; proxied=\$false} | ConvertTo-Json)" >nul 2>&1
+                if !errorlevel! equ 0 (
+                    call !green! "[SUCCESS] Updated record %%b"
+                ) else (
+                    call !red! "[ERROR] Failed to update record %%b"
+                )
+            )
         )
     )
 )
-
 echo =======================================
 echo DNS update script completed.
 pause
