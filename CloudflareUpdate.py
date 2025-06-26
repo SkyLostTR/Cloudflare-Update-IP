@@ -88,8 +88,64 @@ def update_generic_record(zone_id, record, new_content):
     resp = requests.put(url, headers=HEADERS, json=data)
     return resp.ok, resp.text
 
+def backup_records(zones, backup_file='cf_backup.json'):
+    import json
+    backup_data = {}
+    for zone in zones:
+        zone_id = zone['id']
+        zone_name = zone['name']
+        backup_data[zone_name] = []
+        for rtype in ['A', 'TXT', 'SRV', 'MX']:
+            try:
+                recs = get_records(zone_id, rtype)
+                backup_data[zone_name].extend(recs)
+            except Exception as e:
+                log_error(f"Failed to fetch {rtype} records for backup in zone {zone_id}: {e}")
+    with open(backup_file, 'w', encoding='utf-8') as f:
+        json.dump(backup_data, f, indent=2)
+    log_success(f"Backup completed: {backup_file}")
+
+
+def restore_records(backup_file='cf_backup.json'):
+    import json
+    if not os.path.exists(backup_file):
+        log_error(f"Backup file not found: {backup_file}")
+        return
+    with open(backup_file, 'r', encoding='utf-8') as f:
+        backup_data = json.load(f)
+    for zone_name, records in backup_data.items():
+        log_info(f"Restoring records for zone: {zone_name}")
+        # Find zone_id by name
+        zones = get_zones()
+        zone = next((z for z in zones if z['name'] == zone_name), None)
+        if not zone:
+            log_error(f"Zone not found: {zone_name}")
+            continue
+        zone_id = zone['id']
+        for rec in records:
+            # Only restore supported types
+            if rec['type'] not in ['A', 'TXT', 'SRV', 'MX']:
+                continue
+            ok, resp = update_generic_record(zone_id, rec, rec['content'])
+            if ok:
+                log_success(f"Restored record {rec['id']} ({rec['name']}) [{rec['type']}]")
+            else:
+                log_error(f"Failed to restore record {rec['id']} ({rec['name']}) [{rec['type']}]")
+
 def main():
+    import argparse
+    parser = argparse.ArgumentParser(description='Cloudflare DNS update script with backup/restore')
+    parser.add_argument('--backup', action='store_true', help='Backup all DNS records to cf_backup.json')
+    parser.add_argument('--restore', action='store_true', help='Restore DNS records from cf_backup.json')
+    args = parser.parse_args()
+
     zones = get_zones()
+    if args.backup:
+        backup_records(zones)
+        return
+    if args.restore:
+        restore_records()
+        return
     total = 0
     updated = 0
     skipped = 0
