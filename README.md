@@ -80,7 +80,8 @@ Easily update all Cloudflare DNS records (A, AAAA, CNAME, TXT, SRV, MX, NS, PTR,
    python CloudflareUpdate.py --html-report report.html
    ```
    The script will check GitHub for updates before executing.
-   Or to backup/restore:
+   
+   Backup / Restore:
    ```sh
    python CloudflareUpdate.py --backup
    python CloudflareUpdate.py --restore
