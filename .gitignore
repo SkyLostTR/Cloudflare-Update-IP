@@ -1,0 +1,10 @@
+# Ignore environment files and local settings
+.env
+*.log
+
+# Windows system files
+Thumbs.db
+Desktop.ini
+
+# VSCode settings (optional)
+.vscode/
