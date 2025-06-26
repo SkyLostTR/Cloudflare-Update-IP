@@ -37,6 +37,9 @@ Easily update all Cloudflare DNS records (A, AAAA, CNAME, TXT, SRV, MX, NS, PTR,
 - **Backup & Restore:** Easily backup and restore DNS records for safety.
 - **Colorful Output:** Clear, color-coded console output for easy tracking.
 - **Windows Friendly:** Built for Windows, but works cross-platform with Python.
+- **Self-Update Check:** Automatically checks GitHub for a newer version and
+  offers to update before running.
+- **Interactive Prompts:** Missing environment variables are asked for at runtime.
 
 ---
 
@@ -61,7 +64,7 @@ Easily update all Cloudflare DNS records (A, AAAA, CNAME, TXT, SRV, MX, NS, PTR,
    ```
 3. **Configure your environment:**
    ```sh
-   copy .env.example .env
+   cp .env.example .env   # use `copy` on Windows
    ```
    Edit `.env` and set:
    - `CLOUDFLARE_API_TOKEN` – your Cloudflare API token
@@ -70,10 +73,12 @@ Easily update all Cloudflare DNS records (A, AAAA, CNAME, TXT, SRV, MX, NS, PTR,
    - `TARGET_DOMAIN` – (optional) domain to update (default: all zones)
    - `DRY_RUN` – (optional) set to `1` to preview changes
    - `DEBUG` – (optional) set to `1` for verbose logging
+   - `CENSOR` – (optional) set to `0` to disable censoring of log output
 4. **Run the script:**
    ```sh
    python CloudflareUpdate.py
    ```
+   The script will check GitHub for updates before executing.
    Or to backup/restore:
    ```sh
    python CloudflareUpdate.py --backup
@@ -88,6 +93,7 @@ Easily update all Cloudflare DNS records (A, AAAA, CNAME, TXT, SRV, MX, NS, PTR,
 - Set `TARGET_DOMAIN` in `.env` to limit updates to a single zone.
 - Use `DRY_RUN=1` to preview changes without applying them.
 - Use `DEBUG=1` for detailed logs in `debug_output.txt`.
+- Use `CENSOR=0` to display uncensored environment values in output.
 - Always keep your `.env` file private. **Never commit it to version control.**
 
 ---
