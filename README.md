@@ -36,6 +36,7 @@ Easily update all Cloudflare DNS records (A, AAAA, CNAME, TXT, SRV, MX, NS, PTR,
 - **Dry Run & Debug:** Preview changes and get detailed logs before applying updates.
 - **Backup & Restore:** Easily backup and restore DNS records for safety.
 - **Colorful Output:** Clear, color-coded console output for easy tracking.
+- **HTML Report:** Use `--html-report report.html` to generate a visual summary of all changes.
 - **Windows Friendly:** Built for Windows, but works cross-platform with Python.
 
 ---
@@ -72,7 +73,7 @@ Easily update all Cloudflare DNS records (A, AAAA, CNAME, TXT, SRV, MX, NS, PTR,
    - `DEBUG` – (optional) set to `1` for verbose logging
 4. **Run the script:**
    ```sh
-   python CloudflareUpdate.py
+   python CloudflareUpdate.py --html-report report.html
    ```
    Or to backup/restore:
    ```sh
@@ -88,6 +89,7 @@ Easily update all Cloudflare DNS records (A, AAAA, CNAME, TXT, SRV, MX, NS, PTR,
 - Set `TARGET_DOMAIN` in `.env` to limit updates to a single zone.
 - Use `DRY_RUN=1` to preview changes without applying them.
 - Use `DEBUG=1` for detailed logs in `debug_output.txt`.
+- Use `--html-report report.html` to generate a visual report of all record changes.
 - Always keep your `.env` file private. **Never commit it to version control.**
 
 ---

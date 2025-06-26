@@ -33,6 +33,8 @@ DRY_RUN = None
 DEBUG = None
 CENSOR = None
 HEADERS = None
+HTML_REPORT = None
+CHANGES = []
 
 def log_info(msg: str):
     print(f"{GREEN}ℹ️  {msg}{RESET}")
@@ -244,6 +246,37 @@ def restore_records(backup_file='cf_backup.json'):
             else:
                 log_error(f"Failed to restore record {rec['id']} ({rec['name']}) [{rec['type']}]")
 
+def generate_html_report(changes, output_file='report.html'):
+    html_header = """<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='utf-8'>
+    <title>Cloudflare DNS Update Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin:20px; }
+        table { border-collapse: collapse; width:100%; }
+        th, td { border:1px solid #ddd; padding:8px; }
+        th { background-color:#4CAF50; color:white; }
+        tr:nth-child(even) { background-color:#f2f2f2; }
+    </style>
+</head>
+<body>
+<h2>Cloudflare DNS Update Report</h2>
+<table>
+<tr><th>Domain</th><th>Record ID</th><th>Type</th><th>Old Content</th><th>New Content</th><th>Status</th></tr>
+"""
+    rows = []
+    for c in changes:
+        rows.append(
+            f"<tr><td>{c['domain']}</td><td>{c['record_id']}</td><td>{c['type']}</td><td>{c.get('old','')}</td><td>{c.get('new','')}</td><td>{c['status']}</td></tr>"
+        )
+    html_footer = """</table>
+</body>
+</html>"""
+    with open(output_file, 'w', encoding='utf-8') as f:
+        f.write(html_header + "\n".join(rows) + html_footer)
+    log_success(f"HTML report generated: {output_file}")
+
 def prompt_for_env():
     print("\nNo .env file found or required variables missing. Please enter the required parameters:")
     def ask(prompt, default=None, secret=False):
@@ -284,7 +317,10 @@ def main():
     parser = argparse.ArgumentParser(description='Cloudflare DNS update script with backup/restore')
     parser.add_argument('--backup', action='store_true', help='Backup all DNS records to cf_backup.json')
     parser.add_argument('--restore', action='store_true', help='Restore DNS records from cf_backup.json')
+    parser.add_argument('--html-report', metavar='FILE', help='Write HTML report of changes')
     args = parser.parse_args()
+    global HTML_REPORT
+    HTML_REPORT = args.html_report
 
     zones = get_zones()
     if args.backup:
@@ -323,6 +359,14 @@ def main():
                 log_info(f"[SKIP] Empty field in record {rec}")
                 if DEBUG:
                     debug(f"[DEBUG] Skipped: Empty field in record {rec}")
+                CHANGES.append({
+                    'domain': rec.get('name'),
+                    'record_id': rec.get('id'),
+                    'type': rec.get('type'),
+                    'old': rec.get('content'),
+                    'new': rec.get('content'),
+                    'status': 'skipped'
+                })
                 continue
             should_update = False
             new_content = rec['content']
@@ -340,6 +384,14 @@ def main():
                 print(f"⏭️  Skipped record {censored_id} ({censored_name}) [{rec['type']}] (no match or unchanged)")
                 if DEBUG:
                     debug(f"[SKIP] Record {censored_id} ({censored_name}) [{rec['type']}] not matching OLD_IP or already updated")
+                CHANGES.append({
+                    'domain': rec['name'],
+                    'record_id': rec['id'],
+                    'type': rec['type'],
+                    'old': rec['content'],
+                    'new': rec['content'],
+                    'status': 'skipped'
+                })
                 continue
             censored_id = censor_value(rec['id'], 'id')
             censored_name = censor_value(rec['name'], 'name')
@@ -348,6 +400,14 @@ def main():
                 log_dryrun(f"Would update record {rec['id']} ({rec['name']}) [{rec['type']}] in zone {zone_id}: current={rec['content']}, new={new_content}")
                 if DEBUG:
                     debug(f"[DRY RUN] Would update record {rec['id']} ({rec['name']}) [{rec['type']}] in zone {zone_id}: current={rec['content']}, new={new_content}")
+                CHANGES.append({
+                    'domain': rec['name'],
+                    'record_id': rec['id'],
+                    'type': rec['type'],
+                    'old': rec['content'],
+                    'new': new_content,
+                    'status': 'dry-run'
+                })
             else:
                 ok, resp = update_generic_record(zone_id, rec, new_content)
                 if ok:
@@ -355,13 +415,31 @@ def main():
                     log_success(f"Updated record {rec['id']} ({rec['name']}) [{rec['type']}]" )
                     if DEBUG:
                         debug(f"[SUCCESS] Updated record {rec['id']} [{rec['type']}]" )
+                    CHANGES.append({
+                        'domain': rec['name'],
+                        'record_id': rec['id'],
+                        'type': rec['type'],
+                        'old': rec['content'],
+                        'new': new_content,
+                        'status': 'updated'
+                    })
                 else:
                     log_error(f"Failed to update record {rec['id']} ({rec['name']}) [{rec['type']}]" )
                     if DEBUG:
                         debug(f"[ERROR] Failed to update record {rec['id']} [{rec['type']}]: {resp}")
+                    CHANGES.append({
+                        'domain': rec['name'],
+                        'record_id': rec['id'],
+                        'type': rec['type'],
+                        'old': rec['content'],
+                        'new': new_content,
+                        'status': 'failed'
+                    })
     print("\n" + "="*50)
     print(f"🎉 DNS update script completed.\nTotal records: {total} | Updated: {updated} | Skipped: {skipped}")
     print("="*50)
+    if HTML_REPORT:
+        generate_html_report(CHANGES, HTML_REPORT)
     input("\nPress Enter to exit...")
 
 if __name__ == '__main__':
