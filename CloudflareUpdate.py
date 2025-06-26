@@ -12,9 +12,11 @@ try:
     init()
     GREEN = Fore.GREEN
     RED = Fore.RED
+    CYAN = Fore.CYAN
+    YELLOW = Fore.YELLOW
     RESET = Style.RESET_ALL
 except ImportError:
-    GREEN = RED = RESET = ''
+    GREEN = RED = CYAN = YELLOW = RESET = ''
 
 load_dotenv()
 
@@ -35,7 +37,7 @@ CENSOR = None
 HEADERS = None
 
 def log_info(msg: str):
-    print(f"{GREEN}ℹ️  {msg}{RESET}")
+    print(f"{CYAN}ℹ️  {msg}{RESET}")
 
 def log_success(msg: str):
     print(f"{GREEN}✅ {msg}{RESET}")
@@ -44,7 +46,7 @@ def log_error(msg: str):
     print(f"{RED}❌ {msg}{RESET}")
 
 def log_dryrun(msg: str):
-    print(f"{GREEN}🟡 [DRY RUN] {msg}{RESET}")
+    print(f"{YELLOW}🟡 [DRY RUN] {msg}{RESET}")
 
 def init_env():
     global CLOUDFLARE_API_TOKEN, NEW_IP, OLD_IP, TARGET_DOMAIN, DRY_RUN, DEBUG, CENSOR, INTERACTIVE_ENV, HEADERS
@@ -105,6 +107,21 @@ def debug(msg: str):
     if DEBUG:
         with open('debug_output.txt', 'a', encoding='utf-8') as f:
             f.write(msg + '\n')
+
+def print_banner():
+    banner = r"""
+   ____ _                 _       _ _             
+  / ___| | ___  _   _  __| | ___ | (_)_ __   ___  
+ | |   | |/ _ \| | | |/ _` |/ _ \| | | '_ \ / _ \ 
+ | |___| | (_) | |_| | (_| |  __/| | | | | |  __/ 
+  \____|_|\___/ \__,_|\__,_|\___||_|_|_| |_|\___| 
+      ___ ___       _    _           _            
+     |_ _|_ _|_ __ | |_ | | ___  ___| |_ ___  _ __
+      | | | || '_ \| __|| |/ _ \/ __| __/ _ \| '__|
+      | | | || | | | |_ | |  __/\__ \ || (_) | |   
+     |___|___|_| |_|\__||_|\___||___/\__\___/|_|   
+"""
+    print(f"{CYAN}{banner}{RESET}")
 
 def censor_value(val, kind=None):
     if not CENSOR or not val:
@@ -277,8 +294,9 @@ def prompt_for_env():
 def main():
     import argparse
     init_env()
+    print_banner()
     print("\n" + "="*50)
-    print(f"🚀 Starting Cloudflare DNS update script for {TARGET_DOMAIN or 'all zones'}!")
+    print(f"{GREEN}🚀 Starting Cloudflare DNS update script for {TARGET_DOMAIN or 'all zones'}!{RESET}")
     print("="*50 + "\n")
     print_censored_env()
     parser = argparse.ArgumentParser(description='Cloudflare DNS update script with backup/restore')
@@ -360,7 +378,8 @@ def main():
                     if DEBUG:
                         debug(f"[ERROR] Failed to update record {rec['id']} [{rec['type']}]: {resp}")
     print("\n" + "="*50)
-    print(f"🎉 DNS update script completed.\nTotal records: {total} | Updated: {updated} | Skipped: {skipped}")
+    print(f"{GREEN}🎉 DNS update script completed.{RESET}")
+    print(f"{CYAN}Total records: {total} | Updated: {updated} | Skipped: {skipped}{RESET}")
     print("="*50)
     input("\nPress Enter to exit...")
 
