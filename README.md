@@ -1,4 +1,5 @@
 # Cloudflare Update IP
+Documentation for this project is available in the [docs](docs/) directory.
 
 This repository contains a Windows batch script that updates every `A` record in your Cloudflare account to a new IP address. It is useful when migrating servers or working with dynamic addresses.
 
