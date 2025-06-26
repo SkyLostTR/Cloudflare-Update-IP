@@ -5,6 +5,9 @@ from dotenv import load_dotenv
 from typing import Optional
 import getpass
 from dotenv import find_dotenv
+import re
+
+__version__ = "1.0.0"
 
 # Color output for Windows
 try:
@@ -45,6 +48,37 @@ def log_error(msg: str):
 
 def log_dryrun(msg: str):
     print(f"{GREEN}🟡 [DRY RUN] {msg}{RESET}")
+
+def check_for_update():
+    """Check GitHub for a newer version of this script."""
+    url = (
+        "https://raw.githubusercontent.com/SkyLostTR/Cloudflare-Update-IP/main/"
+        "CloudflareUpdate.py"
+    )
+    try:
+        resp = requests.get(url, timeout=10)
+        resp.raise_for_status()
+        match = re.search(r"__version__\s*=\s*['\"]([^'\"]+)['\"]", resp.text)
+        if match and match.group(1) != __version__:
+            remote_version = match.group(1)
+            print(
+                f"A new version ({remote_version}) is available. "
+                f"You have {__version__}."
+            )
+            choice = input("Update now? (y/N): ").strip().lower()
+            if choice in ("y", "yes"):
+                try:
+                    with open(__file__, "w", encoding="utf-8") as f:
+                        f.write(resp.text)
+                    print("Updated successfully. Please run the script again.")
+                    sys.exit(0)
+                except Exception as e:
+                    log_error(f"Automatic update failed: {e}")
+                    print("Please update manually from GitHub.")
+        elif not match:
+            log_error("Failed to determine remote version for update check")
+    except Exception as e:
+        log_error(f"Update check failed: {e}")
 
 def init_env():
     global CLOUDFLARE_API_TOKEN, NEW_IP, OLD_IP, TARGET_DOMAIN, DRY_RUN, DEBUG, CENSOR, INTERACTIVE_ENV, HEADERS
@@ -276,6 +310,7 @@ def prompt_for_env():
 
 def main():
     import argparse
+    check_for_update()
     init_env()
     print("\n" + "="*50)
     print(f"🚀 Starting Cloudflare DNS update script for {TARGET_DOMAIN or 'all zones'}!")

@@ -37,6 +37,8 @@ Easily update all Cloudflare DNS records (A, AAAA, CNAME, TXT, SRV, MX, NS, PTR,
 - **Backup & Restore:** Easily backup and restore DNS records for safety.
 - **Colorful Output:** Clear, color-coded console output for easy tracking.
 - **Windows Friendly:** Built for Windows, but works cross-platform with Python.
+- **Self-Update Check:** Automatically checks GitHub for a newer version and
+  offers to update before running.
 
 ---
 
@@ -74,6 +76,7 @@ Easily update all Cloudflare DNS records (A, AAAA, CNAME, TXT, SRV, MX, NS, PTR,
    ```sh
    python CloudflareUpdate.py
    ```
+   The script will check GitHub for updates before executing.
    Or to backup/restore:
    ```sh
    python CloudflareUpdate.py --backup
