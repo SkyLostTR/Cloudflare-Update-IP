@@ -65,21 +65,26 @@ def get_zones():
         zones = [z for z in zones if z['name'] == TARGET_DOMAIN]
     return zones
 
-def get_a_records(zone_id):
-    url = f'https://api.cloudflare.com/client/v4/zones/{zone_id}/dns_records?per_page=500&type=A'
+def get_records(zone_id, record_type=None):
+    url = f'https://api.cloudflare.com/client/v4/zones/{zone_id}/dns_records?per_page=500'
+    if record_type:
+        url += f'&type={record_type}'
     resp = requests.get(url, headers=HEADERS)
     resp.raise_for_status()
     return resp.json()['result']
 
-def update_record(zone_id, record, new_ip):
+def update_generic_record(zone_id, record, new_content):
     url = f'https://api.cloudflare.com/client/v4/zones/{zone_id}/dns_records/{record["id"]}'
     data = {
-        'type': 'A',
+        'type': record['type'],
         'name': record['name'],
-        'content': new_ip,
-        'ttl': 3600,
-        'proxied': record.get('proxied', False)
+        'content': new_content,
+        'ttl': record.get('ttl', 3600),
+        'proxied': record.get('proxied', False) if record['type'] in ['A', 'AAAA', 'CNAME'] else None
     }
+    # Remove proxied if not supported
+    if data['proxied'] is None:
+        data.pop('proxied')
     resp = requests.put(url, headers=HEADERS, json=data)
     return resp.ok, resp.text
 
@@ -88,45 +93,63 @@ def main():
     total = 0
     updated = 0
     skipped = 0
+    record_types = ['A', 'TXT', 'SRV', 'MX']
+    OLD_IP = os.getenv('OLD_IP')
     for zone in zones:
         zone_id = zone['id']
         if DEBUG:
             debug(f"Found zone ID: {zone_id}")
-        try:
-            records = get_a_records(zone_id)
-        except Exception as e:
-            log_error(f"Failed to fetch records for zone {zone_id}: {e}")
-            if DEBUG:
-                debug(f"[ERROR] Failed to fetch records for zone {zone_id}: {e}")
-            continue
-        for rec in records:
+        all_records = []
+        for rtype in record_types:
+            try:
+                recs = get_records(zone_id, rtype)
+                all_records.extend(recs)
+            except Exception as e:
+                log_error(f"Failed to fetch {rtype} records for zone {zone_id}: {e}")
+                if DEBUG:
+                    debug(f"[ERROR] Failed to fetch {rtype} records for zone {zone_id}: {e}")
+        for rec in all_records:
             total += 1
             if DEBUG:
-                debug(f"Raw record: id={rec['id']} name={rec['name']} content={rec['content']}")
+                debug(f"Raw record: id={rec['id']} type={rec['type']} name={rec['name']} content={rec['content']}")
             if not all([rec.get('id'), rec.get('name'), rec.get('content')]):
                 skipped += 1
                 log_info(f"[SKIP] Empty field in record {rec}")
                 if DEBUG:
                     debug(f"[DEBUG] Skipped: Empty field in record {rec}")
                 continue
-            print(f"{'-'*40}\n🌐 Domain: {rec['name']}\n🆔 Record ID: {rec['id']}\n📦 Zone ID: {zone_id}\n➡️  Current IP: {rec['content']}\n➡️  New IP: {NEW_IP}")
-            if DEBUG:
-                debug(f"Updating record {rec['id']} ({rec['name']}) in zone {zone_id} to IP {NEW_IP}...")
-            if DRY_RUN:
-                log_dryrun(f"Would update record {rec['id']} ({rec['name']}) in zone {zone_id}: current IP={rec['content']}, new IP={NEW_IP}")
+            # Only update if OLD_IP is in content (for non-A records)
+            should_update = False
+            new_content = rec['content']
+            if rec['type'] == 'A':
+                if rec['content'] != NEW_IP:
+                    should_update = True
+                    new_content = NEW_IP
+            elif OLD_IP and OLD_IP in str(rec['content']):
+                should_update = True
+                new_content = str(rec['content']).replace(OLD_IP, NEW_IP)
+            if not should_update:
+                skipped += 1
+                print(f"⏭️  Skipped record {rec['id']} ({rec['name']}) [{rec['type']}] (no match or unchanged)")
                 if DEBUG:
-                    debug(f"[DRY RUN] Would update record {rec['id']} ({rec['name']}) in zone {zone_id}: current IP={rec['content']}, new IP={NEW_IP}")
+                    debug(f"[SKIP] Record {rec['id']} ({rec['name']}) [{rec['type']}] not matching OLD_IP or already updated")
+                continue
+            print(f"{'-'*40}\n🌐 Domain: {rec['name']}\n🆔 Record ID: {rec['id']}\n📦 Zone ID: {zone_id}\n📄 Type: {rec['type']}\n➡️  Current: {rec['content']}\n➡️  New: {new_content}")
+            if DRY_RUN:
+                log_dryrun(f"Would update record {rec['id']} ({rec['name']}) [{rec['type']}] in zone {zone_id}: current={rec['content']}, new={new_content}")
+                if DEBUG:
+                    debug(f"[DRY RUN] Would update record {rec['id']} ({rec['name']}) [{rec['type']}] in zone {zone_id}: current={rec['content']}, new={new_content}")
             else:
-                ok, resp = update_record(zone_id, rec, NEW_IP)
+                ok, resp = update_generic_record(zone_id, rec, new_content)
                 if ok:
                     updated += 1
-                    log_success(f"Updated record {rec['id']} ({rec['name']})")
+                    log_success(f"Updated record {rec['id']} ({rec['name']}) [{rec['type']}]" )
                     if DEBUG:
-                        debug(f"[SUCCESS] Updated record {rec['id']}")
+                        debug(f"[SUCCESS] Updated record {rec['id']} [{rec['type']}]" )
                 else:
-                    log_error(f"Failed to update record {rec['id']} ({rec['name']})")
+                    log_error(f"Failed to update record {rec['id']} ({rec['name']}) [{rec['type']}]" )
                     if DEBUG:
-                        debug(f"[ERROR] Failed to update record {rec['id']}: {resp}")
+                        debug(f"[ERROR] Failed to update record {rec['id']} [{rec['type']}]: {resp}")
     print("\n" + "="*50)
     print(f"🎉 DNS update script completed.\nTotal records: {total} | Updated: {updated} | Skipped: {skipped}")
     print("="*50)
