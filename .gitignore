@@ -1,10 +1,16 @@
-# Ignore environment files and local settings
+# Environment and log files
 .env
+.env.*
 *.log
 
-# Windows system files
+# System files
 Thumbs.db
 Desktop.ini
+.DS_Store
 
-# VSCode settings (optional)
+# Editor settings
 .vscode/
+
+# Backup or temporary files
+*.bak
+*.tmp
