@@ -17,6 +17,7 @@ except ImportError:
 load_dotenv()
 
 DEBUG = os.getenv('DEBUG', '0').lower() in ('1', 'true')
+CENSOR = os.getenv('CENSOR', '1').lower() in ('1', 'true', 'yes')
 
 def debug(msg: str):
     if DEBUG:
@@ -52,9 +53,72 @@ def log_error(msg: str):
 def log_dryrun(msg: str):
     print(f"{GREEN}🟡 [DRY RUN] {msg}{RESET}")
 
+def censor_value(val, kind=None):
+    if not CENSOR or not val:
+        return val
+    if kind == 'id':
+        return val[:4] + '...' + val[-4:] if len(val) > 8 else '****'
+    if kind == 'name':
+        # Censor each label in the domain, keep TLD
+        if '.' in val:
+            parts = val.split('.')
+            tld = parts[-1]
+            censored_labels = []
+            for i, label in enumerate(parts[:-1]):
+                if len(label) <= 2:
+                    censored_labels.append('*' * len(label))
+                else:
+                    censored_labels.append(label[:2] + '***')
+            return '.'.join(censored_labels + [tld])
+        return val[:2] + '***' + val[-2:] if len(val) > 4 else '***'
+    return '***'
+
+def censor_env(env_dict):
+    CENSOR_KEYS = [
+        'CLOUDFLARE_API_TOKEN', 'CLOUDFLARE_AUTH_KEY', 'CLOUDFLARE_AUTH_EMAIL',
+        'NEW_IP', 'OLD_IP', 'TARGET_DOMAIN'
+    ]
+    censored = {}
+    for k, v in env_dict.items():
+        if k in CENSOR_KEYS and v:
+            if 'TOKEN' in k or 'KEY' in k:
+                censored[k] = v[:4] + '...' + v[-4:] if len(v) > 8 else '****'
+            elif 'EMAIL' in k:
+                censored[k] = v[0] + '***@***' + v.split('@')[-1][-3:] if '@' in v else '***'
+            elif 'IP' in k:
+                censored[k] = v[:3] + '.*.*.' + v.split('.')[-1] if '.' in v else '***'
+            elif 'DOMAIN' in k:
+                censored[k] = v[:2] + '***' + v[-2:] if len(v) > 4 else '***'
+            else:
+                censored[k] = '***'
+        else:
+            censored[k] = v
+    return censored
+
+def print_censored_env():
+    if not CENSOR:
+        print("\nENVIRONMENT (uncensored):")
+        env_vars = [
+            'CLOUDFLARE_API_TOKEN', 'CLOUDFLARE_AUTH_KEY', 'CLOUDFLARE_AUTH_EMAIL',
+            'NEW_IP', 'OLD_IP', 'TARGET_DOMAIN', 'DRY_RUN', 'DEBUG'
+        ]
+        for k in env_vars:
+            print(f"  {k} = {os.getenv(k)}")
+        return
+    env_vars = [
+        'CLOUDFLARE_API_TOKEN', 'CLOUDFLARE_AUTH_KEY', 'CLOUDFLARE_AUTH_EMAIL',
+        'NEW_IP', 'OLD_IP', 'TARGET_DOMAIN', 'DRY_RUN', 'DEBUG'
+    ]
+    env_dict = {k: os.getenv(k) for k in env_vars}
+    censored = censor_env(env_dict)
+    print("\nCENSORED ENVIRONMENT (safe for screenshot):")
+    for k, v in censored.items():
+        print(f"  {k} = {v}")
+
 print("\n" + "="*50)
 print(f"🚀 Starting Cloudflare DNS update script for {TARGET_DOMAIN or 'all zones'}!")
 print("="*50 + "\n")
+print_censored_env()
 
 def get_zones():
     url = 'https://api.cloudflare.com/client/v4/zones/?per_page=500'
@@ -188,11 +252,15 @@ def main():
                 new_content = str(rec['content']).replace(OLD_IP, NEW_IP)
             if not should_update:
                 skipped += 1
-                print(f"⏭️  Skipped record {rec['id']} ({rec['name']}) [{rec['type']}] (no match or unchanged)")
+                censored_id = censor_value(rec['id'], 'id')
+                censored_name = censor_value(rec['name'], 'name')
+                print(f"⏭️  Skipped record {censored_id} ({censored_name}) [{rec['type']}] (no match or unchanged)")
                 if DEBUG:
-                    debug(f"[SKIP] Record {rec['id']} ({rec['name']}) [{rec['type']}] not matching OLD_IP or already updated")
+                    debug(f"[SKIP] Record {censored_id} ({censored_name}) [{rec['type']}] not matching OLD_IP or already updated")
                 continue
-            print(f"{'-'*40}\n🌐 Domain: {rec['name']}\n🆔 Record ID: {rec['id']}\n📦 Zone ID: {zone_id}\n📄 Type: {rec['type']}\n➡️  Current: {rec['content']}\n➡️  New: {new_content}")
+            censored_id = censor_value(rec['id'], 'id')
+            censored_name = censor_value(rec['name'], 'name')
+            print(f"{'-'*40}\n🌐 Domain: {censored_name}\n🆔 Record ID: {censored_id}\n📦 Zone ID: {zone_id}\n📄 Type: {rec['type']}\n➡️  Current: {rec['content']}\n➡️  New: {new_content}")
             if DRY_RUN:
                 log_dryrun(f"Would update record {rec['id']} ({rec['name']}) [{rec['type']}] in zone {zone_id}: current={rec['content']}, new={new_content}")
                 if DEBUG:
