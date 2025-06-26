@@ -62,8 +62,8 @@ for /f "delims=" %%a in ('powershell -Command "Invoke-RestMethod -Uri https://ap
         echo Found zone ID: %%a
 
         rem Fetch DNS record IDs for the zone
-        for /f "delims=" %%b in ('powershell -Command "Invoke-RestMethod -Uri https://api.cloudflare.com/client/v4/zones/%%a/dns_records?per_page=500 -Method GET -Headers @{\"X-Auth-Email\"=\"%CLOUDFLARE_AUTH_EMAIL%\";\"X-Auth-Key\"=\"%CLOUDFLARE_AUTH_KEY%\";\"Content-Type\"=\"application/json\"} | ForEach-Object { $_.result } | Where-Object { $_.type -eq 'A' } | ForEach-Object { \"$($_.id)|$($_.name)|$($_.content)\" }"') do (
-            for /f "tokens=1,2,3 delims=|" %%c in ("%%b") do (
+        for /f "delims=" %%b in ('powershell -Command "Invoke-RestMethod -Uri https://api.cloudflare.com/client/v4/zones/%%a/dns_records?per_page=500 -Method GET -Headers @{\"X-Auth-Email\"=\"%CLOUDFLARE_AUTH_EMAIL%\";\"X-Auth-Key\"=\"%CLOUDFLARE_AUTH_KEY%\";\"Content-Type\"=\"application/json\"} | ForEach-Object { $_.result } | Where-Object { $_.type -eq 'A' } | ForEach-Object { \"$($_.id)~$($_.name)~$($_.content)\" }"') do (
+            for /f "tokens=1,2,3 delims=~" %%c in ("%%b") do (
                 set record_id=%%c
                 set record_name=%%d
                 set record_content=%%e
