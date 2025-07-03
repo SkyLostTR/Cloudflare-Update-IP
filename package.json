@@ -1,6 +1,6 @@
 {
   "name": "@keeftraum/cloudflare-update-ip",
-  "version": "1.0.6",
+  "version": "1.2.2",
   "description": "A Python utility for batch updating, backing up, and restoring DNS records across one or more Cloudflare zones.This tool is designed for sysadmins and developers who need to automate DNS management tasks, such as updating IP addresses, replacing old records, or migrating DNS settings.",
   "main": "index.js",
   "scripts": {
@@ -9,7 +9,7 @@
     "changelog": "auto-changelog -p"
   },
   "bin": {
-    "cloudflare-update-ip": "./cli.js"
+    "cloudflare-update-ip": "cli.js"
   },
   "files": [
     "cli.js",
