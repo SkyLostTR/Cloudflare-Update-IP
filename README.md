@@ -94,6 +94,8 @@ The tool can also be installed globally from npm as [`@keeftraum/cloudflare-upda
    python CloudflareUpdate.py --html-report report.html
    ```
    The script will check GitHub for updates before executing.
+   Run `python CloudflareUpdate.py -h` to see all available options and
+   environment variables.
    
    Backup / Restore:
    ```sh
