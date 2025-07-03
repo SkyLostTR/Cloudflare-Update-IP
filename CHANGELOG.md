@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. Dates are displayed in UTC.
 
+#### [v1.2.3](https://github.com/SkyLostTR/Cloudflare-Update-IP/compare/v1.0.6...v1.2.3)
+
+> 4 July 2025
+
+- Enhance update check to use npm and GitHub releases for versioning [`921c458`](https://github.com/SkyLostTR/Cloudflare-Update-IP/commit/921c4581965c67d6f5212ecf0d48ca935151412d)
+- Add changelog entry for version 1.0.6 and update package.json scripts [`699d72d`](https://github.com/SkyLostTR/Cloudflare-Update-IP/commit/699d72d79de34104315857a885192b2d034c705c)
+- Update version to 1.2.2 and adjust bin path in package.json [`75f79b8`](https://github.com/SkyLostTR/Cloudflare-Update-IP/commit/75f79b85c6b335d16ee4b1a0843ccf57d42a74c3)
+
 #### [v1.0.6](https://github.com/SkyLostTR/Cloudflare-Update-IP/compare/v1.0.5...v1.0.6)
 
 > 3 July 2025

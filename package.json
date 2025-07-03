@@ -9,7 +9,7 @@
     "changelog": "auto-changelog -p"
   },
   "bin": {
-    "cloudflare-update-ip": "cli.js"
+    "cloudflare-update-ip": "./cli.js"
   },
   "files": [
     "cli.js",
