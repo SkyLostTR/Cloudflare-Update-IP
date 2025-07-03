@@ -1,0 +1,13 @@
+{
+  "name": "@keeftraum/cloudflare-update-ip",
+  "version": "1.0.0",
+  "description": "CLI wrapper to run CloudflareUpdate.py for updating Cloudflare DNS records.",
+  "bin": {
+    "cloudflare-update-ip": "./cli.js"
+  },
+  "files": ["cli.js", "CloudflareUpdate.py"],
+  "author": "SkyLostTR",
+  "license": "MIT",
+  "keywords": ["cloudflare", "dns", "cli", "update"],
+  "dependencies": {}
+}
