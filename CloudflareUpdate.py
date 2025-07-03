@@ -10,7 +10,16 @@ from dotenv import find_dotenv
 import re
 import json
 
-__version__ = "1.0.4"
+def get_version_from_package_json():
+    pkg_path = os.path.join(os.path.dirname(__file__), "package.json")
+    try:
+        with open(pkg_path, "r", encoding="utf-8") as f:
+            pkg = json.load(f)
+            return pkg.get("version", "0.0.0")
+    except Exception:
+        return "0.0.0"
+
+__version__ = get_version_from_package_json()
 
 try:
     from pyfiglet import figlet_format
@@ -380,6 +389,7 @@ def prompt_for_env():
 def main():
     """Entry point for running the update or backup logic."""
     import argparse
+    import json
     check_for_update()
     init_env()
     print_banner()
