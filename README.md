@@ -36,6 +36,8 @@
 
 Easily update all Cloudflare DNS records (A, AAAA, CNAME, TXT, SRV, MX, NS, PTR, CAA, CERT, DNSKEY, DS, LOC, NAPTR, SMIMEA, SSHFP, SVCB, TLSA, URI, and more) to a new IP address using a simple script. Ideal for server migrations, dynamic IP environments, or bulk DNS changes.
 
+The tool can also be installed globally from npm as [`@keeftraum/cloudflare-update-ip`](https://www.npmjs.com/package/@keeftraum/cloudflare-update-ip).
+
 ---
 
 ## 🚀 Features
@@ -51,6 +53,7 @@ Easily update all Cloudflare DNS records (A, AAAA, CNAME, TXT, SRV, MX, NS, PTR,
 - **Self-Update Check:** Automatically checks GitHub for a newer version and
   offers to update before running.
 - **Interactive Prompts:** Missing environment variables are asked for at runtime.
+- **NPM CLI:** Install globally with `npm i -g @keeftraum/cloudflare-update-ip` and run the tool using `cloudflare-update-ip`.
 
 ---
 
@@ -59,6 +62,7 @@ Easily update all Cloudflare DNS records (A, AAAA, CNAME, TXT, SRV, MX, NS, PTR,
 - Python 3.7+
 - `requests`, `python-dotenv`, `colorama`, `pyfiglet` (install via `pip install -r requirements.txt`)
 - Cloudflare API token with DNS edit permissions
+- (Optional) Node.js 14+ for using the npm-based CLI
 
 ---
 
@@ -97,6 +101,15 @@ Easily update all Cloudflare DNS records (A, AAAA, CNAME, TXT, SRV, MX, NS, PTR,
    python CloudflareUpdate.py --restore
    ```
 
+### Use via npm
+
+Alternatively, install the CLI globally from npm and run it anywhere:
+
+```sh
+npm install -g @keeftraum/cloudflare-update-ip
+cloudflare-update-ip --html-report report.html
+```
+
 ---
 
 ## 🛠️ Usage
@@ -107,6 +120,7 @@ Easily update all Cloudflare DNS records (A, AAAA, CNAME, TXT, SRV, MX, NS, PTR,
 - Use `DEBUG=1` for detailed logs in `debug_output.txt`.
 - Use `--html-report report.html` to generate a visual report of all record changes.
 - Use `CENSOR=0` to display uncensored environment values in output.
+- If installed via npm, run the tool with `cloudflare-update-ip` instead of the Python file.
 - Always keep your `.env` file private. **Never commit it to version control.**
 
 ---

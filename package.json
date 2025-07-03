@@ -6,6 +6,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "bin": {
+    "cloudflare-update-ip": "./cli.js"
+  },
+  "files": ["cli.js", "CloudflareUpdate.py"],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/SkyLostTR/Cloudflare-Update-IP.git"
