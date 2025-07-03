@@ -23,10 +23,28 @@
   <a href="https://nodejs.org/">
     <img alt="Node Version" src="https://img.shields.io/badge/node-14%2B-green.svg" style="max-width: 100%;">
   </a>
-  <a href="https://github.com/SkyLostTR/Cloudflare-Update-IP/actions/workflows/npm-test.yml">
-    <img alt="Node.js Tests" src="https://github.com/SkyLostTR/Cloudflare-Update-IP/actions/workflows/npm-test.yml/badge.svg" style="max-width: 100%;">
-  </a>
-</p>
+    <a href="https://github.com/SkyLostTR/Cloudflare-Update-IP/actions/workflows/npm-test.yml">
+      <img alt="Node.js Tests" src="https://github.com/SkyLostTR/Cloudflare-Update-IP/actions/workflows/npm-test.yml/badge.svg" style="max-width: 100%;">
+    </a>
+    <a href="https://github.com/SkyLostTR/Cloudflare-Update-IP/watchers">
+      <img alt="Watchers" src="https://img.shields.io/github/watchers/SkyLostTR/Cloudflare-Update-IP?color=lightgrey" style="max-width: 100%;">
+    </a>
+    <a href="https://github.com/SkyLostTR/Cloudflare-Update-IP/releases">
+      <img alt="Latest Release" src="https://img.shields.io/github/v/release/SkyLostTR/Cloudflare-Update-IP?sort=semver" style="max-width: 100%;">
+    </a>
+    <a href="https://github.com/SkyLostTR/Cloudflare-Update-IP">
+      <img alt="Last Commit" src="https://img.shields.io/github/last-commit/SkyLostTR/Cloudflare-Update-IP" style="max-width: 100%;">
+    </a>
+    <a href="https://github.com/SkyLostTR/Cloudflare-Update-IP">
+      <img alt="Top Language" src="https://img.shields.io/github/languages/top/SkyLostTR/Cloudflare-Update-IP" style="max-width: 100%;">
+    </a>
+    <a href="https://github.com/SkyLostTR/Cloudflare-Update-IP">
+      <img alt="Repo Size" src="https://img.shields.io/github/repo-size/SkyLostTR/Cloudflare-Update-IP" style="max-width: 100%;">
+    </a>
+    <a href="https://github.com/SkyLostTR/Cloudflare-Update-IP">
+      <img alt="Code Size" src="https://img.shields.io/github/code-size/SkyLostTR/Cloudflare-Update-IP" style="max-width: 100%;">
+    </a>
+  </p>
 <!-- Support Buttons -->
 <p align="center">
   <a href="https://coff.ee/keeftraum">
