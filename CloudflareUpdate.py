@@ -9,7 +9,7 @@ import getpass
 from dotenv import find_dotenv
 import re
 
-__version__ = "1.0.3"
+__version__ = "1.0.4"
 
 try:
     from pyfiglet import figlet_format
@@ -164,7 +164,7 @@ def print_banner():
     else:
         banner = text
     print(f"{CYAN}{banner}{RESET}")
-    print(f"{YELLOW}(credit: @SkyLostTR){RESET}")
+    print(f"{YELLOW}(credit: @SkyLostTR/@Keeftraum){RESET}")
 
 def censor_value(val, kind=None):
     """Mask sensitive values before printing."""
@@ -384,7 +384,21 @@ def main():
     print(f"{GREEN}🚀 Starting Cloudflare DNS update script for {TARGET_DOMAIN or 'all zones'}!{RESET}")
     print("="*50 + "\n")
     print_censored_env()
-    parser = argparse.ArgumentParser(description='Cloudflare DNS update script with backup/restore')
+    help_epilog = """Environment variables:\n"
+    help_epilog += "  CLOUDFLARE_API_TOKEN  Cloudflare API token with DNS edit permissions (required)\n"
+    help_epilog += "  NEW_IP                New IP address to set for records (required)\n"
+    help_epilog += "  OLD_IP                Existing IP address to replace (optional)\n"
+    help_epilog += "  TARGET_DOMAIN         Only update this zone (optional, default: all zones)\n"
+    help_epilog += "  DRY_RUN               Set to 1 to preview changes without applying\n"
+    help_epilog += "  DEBUG                 Set to 1 for verbose logging\n"
+    help_epilog += "  CENSOR                Set to 0 to show uncensored environment values\n"""  # noqa: E501
+
+    parser = argparse.ArgumentParser(
+        description='Cloudflare DNS update script with backup/restore',
+        formatter_class=argparse.RawTextHelpFormatter,
+        epilog=help_epilog,
+    )
+    parser.add_argument('-v', '--version', action='version', version=f'%(prog)s {__version__}')
     parser.add_argument('--backup', action='store_true', help='Backup all DNS records to cf_backup.json')
     parser.add_argument('--restore', action='store_true', help='Restore DNS records from cf_backup.json')
     parser.add_argument('--html-report', metavar='FILE', help='Write HTML report of changes')

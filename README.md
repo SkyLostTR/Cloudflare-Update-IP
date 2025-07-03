@@ -94,6 +94,8 @@ The tool can also be installed globally from npm as [`@keeftraum/cloudflare-upda
    python CloudflareUpdate.py --html-report report.html
    ```
    The script will check GitHub for updates before executing.
+   Run `python CloudflareUpdate.py -h` to see all available options and
+   environment variables.
    
    Backup / Restore:
    ```sh
@@ -133,7 +135,7 @@ cloudflare-update-ip --html-report report.html
 
 ## 🙏 Credits
 
-Created and maintained by [@SkyLostTR](https://github.com/SkyLostTR)
+Created and maintained by [@SkyLostTR](https://github.com/SkyLostTR) ([@Keeftraum](https://github.com/Keeftraum))
 ASCII banner generated with [pyfiglet](https://pypi.org/project/pyfiglet/)
 
 ---
