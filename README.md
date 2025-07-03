@@ -131,6 +131,16 @@ cloudflare-update-ip --html-report report.html
 - If installed via npm, run the tool with `cloudflare-update-ip` instead of the Python file.
 - Always keep your `.env` file private. **Never commit it to version control.**
 
+## ✅ Tests
+
+Run the automated checks with:
+
+```sh
+npm test
+```
+
+This compiles the Python script and verifies the Node CLI wrapper.
+
 ---
 
 ## 📚 Documentation

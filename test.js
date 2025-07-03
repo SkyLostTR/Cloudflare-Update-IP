@@ -1,3 +1,14 @@
 const assert = require('assert');
-assert.strictEqual(1, 1);
-console.log('All tests passed');
+const { execSync } = require('child_process');
+const fs = require('fs');
+
+// Ensure the Python script compiles without syntax errors
+execSync('python3 -m py_compile CloudflareUpdate.py');
+
+const pkg = require('./package.json');
+assert(pkg.bin && pkg.bin['cloudflare-update-ip'] === './cli.js');
+
+// Verify the CLI script exists and is executable
+fs.accessSync(pkg.bin['cloudflare-update-ip'], fs.constants.X_OK);
+
+console.log('All checks passed');
