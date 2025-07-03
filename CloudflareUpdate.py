@@ -9,7 +9,7 @@ import getpass
 from dotenv import find_dotenv
 import re
 
-__version__ = "1.0.0"
+__version__ = "1.0.3"
 
 try:
     from pyfiglet import figlet_format
