@@ -1,13 +1,28 @@
 {
   "name": "@keeftraum/cloudflare-update-ip",
   "version": "1.0.0",
-  "description": "CLI wrapper to run CloudflareUpdate.py for updating Cloudflare DNS records.",
+  "description": "A Python utility for batch updating, backing up, and restoring DNS records across one or more Cloudflare zones.This tool is designed for sysadmins and developers who need to automate DNS management tasks, such as updating IP addresses, replacing old records, or migrating DNS settings.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "bin": {
     "cloudflare-update-ip": "./cli.js"
   },
   "files": ["cli.js", "CloudflareUpdate.py"],
-  "author": "SkyLostTR",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SkyLostTR/Cloudflare-Update-IP.git"
+  },
+  "keywords": [
+    "cloudflare",
+    "cloudflare-api",
+    "cloudflare-dns"
+  ],
+  "author": "@Keeftraum/@SkyLostTR",
   "license": "MIT",
-  "keywords": ["cloudflare", "dns", "cli", "update"],
-  "dependencies": {}
+  "bugs": {
+    "url": "https://github.com/SkyLostTR/Cloudflare-Update-IP/issues"
+  },
+  "homepage": "https://github.com/SkyLostTR/Cloudflare-Update-IP#readme"
 }
