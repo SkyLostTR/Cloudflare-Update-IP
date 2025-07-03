@@ -75,35 +75,40 @@ def log_dryrun(msg: str):
     """Print a message when running with --dry-run."""
 
 def check_for_update():
-    """Check GitHub for a newer version of this script."""
-    url = (
-        "https://raw.githubusercontent.com/SkyLostTR/Cloudflare-Update-IP/main/"
-        "CloudflareUpdate.py"
-    )
+    """Check for a newer version of this script via npm and GitHub."""
+    npm_url = "https://registry.npmjs.org/@keeftraum/cloudflare-update-ip/latest"
+    github_url = "https://api.github.com/repos/SkyLostTR/Cloudflare-Update-IP/releases/latest"
+    remote_version = None
+    # Try npm first
     try:
-        resp = requests.get(url, timeout=10)
-        resp.raise_for_status()
-        match = re.search(r"__version__\s*=\s*['\"]([^'\"]+)['\"]", resp.text)
-        if match and match.group(1) != __version__:
-            remote_version = match.group(1)
-            print(
-                f"A new version ({remote_version}) is available. "
-                f"You have {__version__}."
-            )
-            choice = input("Update now? (y/N): ").strip().lower()
-            if choice in ("y", "yes"):
-                try:
-                    with open(__file__, "w", encoding="utf-8") as f:
-                        f.write(resp.text)
-                    print("Updated successfully. Please run the script again.")
-                    sys.exit(0)
-                except Exception as e:
-                    log_error(f"Automatic update failed: {e}")
-                    print("Please update manually from GitHub.")
-        elif not match:
-            log_error("Failed to determine remote version for update check")
-    except Exception as e:
-        log_error(f"Update check failed: {e}")
+        resp = requests.get(npm_url, timeout=8)
+        if resp.ok:
+            data = resp.json()
+            remote_version = data.get("version")
+    except Exception:
+        pass
+    # Fallback to GitHub releases
+    if not remote_version:
+        try:
+            resp = requests.get(github_url, timeout=8)
+            if resp.ok:
+                data = resp.json()
+                remote_version = data.get("tag_name") or data.get("name")
+                if remote_version and remote_version.startswith("v"):
+                    remote_version = remote_version[1:]
+        except Exception:
+            pass
+    if not remote_version:
+        log_error("Failed to determine remote version for update check (npm & GitHub). Proceeding anyway.")
+        return
+    if remote_version != __version__:
+        print(f"A new version ({remote_version}) is available. You have {__version__}.")
+        choice = input("Update now? (y/N): ").strip().lower()
+        if choice in ("y", "yes"):
+            print("To update, run: npm i -g @keeftraum/cloudflare-update-ip or pull the latest from GitHub.")
+            sys.exit(0)
+    else:
+        log_info(f"You are running the latest version ({__version__}).")
 
 def init_env():
     """Load environment variables from .env or ask interactively."""
