@@ -118,6 +118,9 @@ npm install -g @keeftraum/cloudflare-update-ip
 cloudflare-update-ip --html-report report.html
 ```
 
+The npm package runs a postinstall script that installs the required Python
+dependencies using `pip`, so make sure Python is available on your system.
+
 ---
 
 ## 🛠️ Usage
