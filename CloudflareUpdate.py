@@ -8,6 +8,7 @@ from typing import Optional
 import getpass
 from dotenv import find_dotenv
 import re
+import json
 
 __version__ = "1.0.4"
 
@@ -267,50 +268,52 @@ def update_generic_record(zone_id, record, new_content):
     return resp.ok, resp.text
 
 def backup_records(zones, backup_file='cf_backup.json'):
-    """Save all DNS records for each zone to a JSON file."""
-    import json
-    backup_data = {}
+    """Backup all DNS records for all zones to a JSON file."""
+    all_data = {}
     for zone in zones:
         zone_id = zone['id']
         zone_name = zone['name']
-        backup_data[zone_name] = []
-        for rtype in ['A', 'TXT', 'SRV', 'MX']:
-            try:
-                recs = get_records(zone_id, rtype)
-                backup_data[zone_name].extend(recs)
-            except Exception as e:
-                log_error(f"Failed to fetch {rtype} records for backup in zone {zone_id}: {e}")
+        try:
+            resp = requests.get(f'https://api.cloudflare.com/client/v4/zones/{zone_id}/dns_records', headers=HEADERS)
+            resp.raise_for_status()
+            records = resp.json().get('result', [])
+            all_data[zone_name] = {
+                'zone_id': zone_id,
+                'records': records
+            }
+            log_success(f"Backed up {len(records)} records for zone {zone_name}")
+        except Exception as e:
+            log_error(f"Failed to backup zone {zone_name}: {e}")
     with open(backup_file, 'w', encoding='utf-8') as f:
-        json.dump(backup_data, f, indent=2)
-    log_success(f"Backup completed: {backup_file}")
+        json.dump(all_data, f, indent=2)
+    log_success(f"Backup complete. Saved to {backup_file}")
 
 
 def restore_records(backup_file='cf_backup.json'):
-    """Restore DNS records from a JSON backup file."""
-    import json
+    """Restore DNS records from a backup JSON file."""
     if not os.path.exists(backup_file):
-        log_error(f"Backup file not found: {backup_file}")
+        log_error(f"Backup file {backup_file} not found.")
         return
     with open(backup_file, 'r', encoding='utf-8') as f:
-        backup_data = json.load(f)
-    for zone_name, records in backup_data.items():
-        log_info(f"Restoring records for zone: {zone_name}")
-        # Find zone_id by name
-        zones = get_zones()
-        zone = next((z for z in zones if z['name'] == zone_name), None)
-        if not zone:
-            log_error(f"Zone not found: {zone_name}")
-            continue
-        zone_id = zone['id']
+        all_data = json.load(f)
+    for zone_name, data in all_data.items():
+        zone_id = data['zone_id']
+        records = data['records']
         for rec in records:
-            # Only restore supported types
-            if rec['type'] not in ['A', 'TXT', 'SRV', 'MX']:
-                continue
-            ok, resp = update_generic_record(zone_id, rec, rec['content'])
-            if ok:
-                log_success(f"Restored record {rec['id']} ({rec['name']}) [{rec['type']}]")
-            else:
-                log_error(f"Failed to restore record {rec['id']} ({rec['name']}) [{rec['type']}]")
+            rec_id = rec.get('id')
+            rec_data = {k: v for k, v in rec.items() if k not in ['id', 'zone_id', 'zone_name', 'created_on', 'modified_on']}
+            try:
+                # Try to update if exists, else create
+                if rec_id:
+                    url = f'https://api.cloudflare.com/client/v4/zones/{zone_id}/dns_records/{rec_id}'
+                    resp = requests.put(url, headers=HEADERS, json=rec_data)
+                else:
+                    url = f'https://api.cloudflare.com/client/v4/zones/{zone_id}/dns_records'
+                    resp = requests.post(url, headers=HEADERS, json=rec_data)
+                resp.raise_for_status()
+                log_success(f"Restored record {rec.get('name')} ({rec.get('type')}) in {zone_name}")
+            except Exception as e:
+                log_error(f"Failed to restore record {rec.get('name')} in {zone_name}: {e}")
 
 def generate_html_report(changes, output_file='report.html'):
     html_header = """<!DOCTYPE html>
