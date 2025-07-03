@@ -41,9 +41,6 @@
     <a href="https://github.com/SkyLostTR/Cloudflare-Update-IP">
       <img alt="Repo Size" src="https://img.shields.io/github/repo-size/SkyLostTR/Cloudflare-Update-IP" style="max-width: 100%;">
     </a>
-    <a href="https://github.com/SkyLostTR/Cloudflare-Update-IP">
-      <img alt="Code Size" src="https://img.shields.io/github/code-size/SkyLostTR/Cloudflare-Update-IP" style="max-width: 100%;">
-    </a>
   </p>
 <!-- Support Buttons -->
 <p align="center">
