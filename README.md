@@ -17,9 +17,15 @@
    <a href="https://github.com/SkyLostTR/Cloudflare-Update-IP/blob/main/LICENSE">
      <img alt="License" src="https://img.shields.io/github/license/SkyLostTR/Cloudflare-Update-IP?color=blue" style="max-width: 100%;">
    </a>
-   <a href="https://pypi.org/project/requests/">
-     <img alt="Python Version" src="https://img.shields.io/badge/python-3.7%2B-blue.svg" style="max-width: 100%;">
-   </a>
+  <a href="https://pypi.org/project/requests/">
+    <img alt="Python Version" src="https://img.shields.io/badge/python-3.7%2B-blue.svg" style="max-width: 100%;">
+  </a>
+  <a href="https://nodejs.org/">
+    <img alt="Node Version" src="https://img.shields.io/badge/node-14%2B-green.svg" style="max-width: 100%;">
+  </a>
+  <a href="https://github.com/SkyLostTR/Cloudflare-Update-IP/actions/workflows/npm-test.yml">
+    <img alt="Node.js Tests" src="https://github.com/SkyLostTR/Cloudflare-Update-IP/actions/workflows/npm-test.yml/badge.svg" style="max-width: 100%;">
+  </a>
 </p>
 <!-- Support Buttons -->
 <p align="center">
