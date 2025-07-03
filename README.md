@@ -135,7 +135,7 @@ cloudflare-update-ip --html-report report.html
 
 ## 🙏 Credits
 
-Created and maintained by [@SkyLostTR](https://github.com/SkyLostTR)
+Created and maintained by [@SkyLostTR](https://github.com/SkyLostTR) ([@Keeftraum](https://github.com/Keeftraum))
 ASCII banner generated with [pyfiglet](https://pypi.org/project/pyfiglet/)
 
 ---

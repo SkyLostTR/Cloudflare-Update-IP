@@ -164,7 +164,7 @@ def print_banner():
     else:
         banner = text
     print(f"{CYAN}{banner}{RESET}")
-    print(f"{YELLOW}(credit: @SkyLostTR){RESET}")
+    print(f"{YELLOW}(credit: @SkyLostTR/@Keeftraum){RESET}")
 
 def censor_value(val, kind=None):
     """Mask sensitive values before printing."""
