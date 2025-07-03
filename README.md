@@ -21,6 +21,16 @@
      <img alt="Python Version" src="https://img.shields.io/badge/python-3.7%2B-blue.svg" style="max-width: 100%;">
    </a>
 </p>
+<!-- Support Buttons -->
+<p align="center">
+  <a href="https://coff.ee/keeftraum">
+    <img src="https://img.shields.io/badge/Buy&nbsp;Me&nbsp;a&nbsp;Coffee-FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=black" alt="Buy Me a Coffee">
+  </a>
+  &nbsp;
+  <a href="https://github.com/sponsors/SkyLostTR">
+    <img src="https://img.shields.io/badge/GitHub&nbsp;Sponsor-ff69b4?style=for-the-badge&logo=github&logoColor=white" alt="GitHub Sponsor">
+  </a>
+</p>
 
 # Cloudflare Update IP
 
