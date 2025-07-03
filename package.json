@@ -10,12 +10,7 @@
     "cloudflare-update-ip": "./cli.js"
   },
   "files": ["cli.js", "CloudflareUpdate.py"],
-  "dependencies": {
-    "requests": ">=2.31.0",
-    "python-dotenv": ">=1.0.0",
-    "colorama": ">=0.4.6",
-    "pyfiglet": "*"
-  },
+  "dependencies": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/SkyLostTR/Cloudflare-Update-IP.git"
