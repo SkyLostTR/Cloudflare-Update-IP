@@ -8,7 +8,7 @@
     "postinstall": "node install-python.js"
   },
   "bin": {
-    "cloudflare-update-ip": "cli.js"
+    "cloudflare-update-ip": "./cli.js"
   },
   "files": [
     "cli.js",
